@@ -1,0 +1,88 @@
+{
+  "manifest_version": "0.4",
+  "name": "airship-mcp",
+  "display_name": "Airship MCP",
+  "version": "1.0.0",
+  "description": "Airship SDK development server — push notifications, channel management, SDK migration, and build verification.",
+  "long_description": "Provides tools for sending push notifications, managing audience segments and channels, verifying iOS/Android builds, guiding SDK migrations, and accessing Airship skills as prompts.",
+  "author": {
+    "name": "Airship",
+    "url": "https://airship.com"
+  },
+  "license": "Apache-2.0",
+  "keywords": ["airship", "push", "mobile", "sdk", "api", "notifications"],
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.10"
+    }
+  },
+  "server": {
+    "type": "uv",
+    "entry_point": "server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "--directory", "${__dirname}", "airship-mcp"],
+      "env": {
+        "AIRSHIP_APP_KEY": "${user_config.app_key}",
+        "AIRSHIP_CLIENT_ID": "${user_config.client_id}",
+        "AIRSHIP_CLIENT_SECRET": "${user_config.client_secret}",
+        "AIRSHIP_REGION": "${user_config.region}"
+      }
+    }
+  },
+  "user_config": {
+    "app_key": {
+      "type": "string",
+      "title": "App Key",
+      "description": "Your Airship application key",
+      "required": true,
+      "sensitive": false
+    },
+    "client_id": {
+      "type": "string",
+      "title": "OAuth Client ID",
+      "description": "From your project Settings > OAuth in the Airship dashboard.",
+      "required": true,
+      "sensitive": false
+    },
+    "client_secret": {
+      "type": "string",
+      "title": "OAuth Client Secret",
+      "description": "Paired with your Client ID. Enable 'Allow Basic Auth' when creating credentials to generate this.",
+      "required": true,
+      "sensitive": true
+    },
+    "region": {
+      "type": "string",
+      "title": "Region",
+      "description": "Your Airship region: us or eu",
+      "required": false,
+      "default": "us"
+    }
+  },
+  "prompts_generated": true,
+  "tools_generated": true,
+  "tools": [
+    { "name": "start", "description": "Main router for Airship SDK tasks" },
+    { "name": "send_push_to_tag", "description": "Send push notification to a tag" },
+    { "name": "send_push_to_channel", "description": "Send push notification to a specific channel" },
+    { "name": "send_custom_push", "description": "Send a custom push notification payload" },
+    { "name": "send_message_center_message", "description": "Send a Message Center (inbox) message" },
+    { "name": "validate_push_payload", "description": "Validate a push payload without sending" },
+    { "name": "lookup_channel", "description": "Look up a channel by ID" },
+    { "name": "get_channel_tags", "description": "List all tags on a channel" },
+    { "name": "get_channel_attributes", "description": "Get custom attributes for a channel" },
+    { "name": "lookup_named_user", "description": "Look up a named user and their channels" },
+    { "name": "list_segments", "description": "List all audience segments" },
+    { "name": "get_segment_info", "description": "Get details for a specific segment" },
+    { "name": "create_segment", "description": "Create a reusable audience segment" },
+    { "name": "delete_segment", "description": "Delete an audience segment" },
+    { "name": "check_build_tools", "description": "Check available iOS/Android build tools" },
+    { "name": "verify_build", "description": "Build and verify an iOS or Android project" },
+    { "name": "start_migration", "description": "Start an interactive SDK migration wizard" },
+    { "name": "migrate_sdk", "description": "Run an SDK migration for a specific version range" },
+    { "name": "install_skills", "description": "Install Airship skill files into a project" },
+    { "name": "update_skills", "description": "Download or update Airship skills from GitHub" }
+  ]
+}

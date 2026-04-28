@@ -132,6 +132,19 @@ Or use the MCP server's `install_skills` tool to install them interactively once
 
 ---
 
+## Install Skills for Gemini CLI
+
+Link all Airship skills to the Gemini CLI using the included setup script. Requires Python 3 and the [Gemini CLI](https://github.com/google-gemini/gemini-cli) installed and authenticated.
+
+```bash
+cd /path/to/agent-tools
+python3 tools/setup_gemini.py
+```
+
+The script flattens the nested `skills/` directory into the format Gemini expects and runs `gemini skills link --consent` to register them. Re-run it whenever skills are updated.
+
+---
+
 ## Install as a Claude Desktop Extension
 
 The extension bundles the MCP server and skills into a single file for one-click installation.

@@ -837,6 +837,16 @@ async def call_airship_api(
     if method not in ("GET", "POST", "PUT", "DELETE", "PATCH"):
         return {"status": "error", "message": f"Unsupported HTTP method: {method}"}
 
+    # Block broadcast pushes — same guard as send_custom_push.
+    if method == "POST" and path.rstrip("/") in ("/api/push", "/api/push/validate"):
+        audience = (body or {}).get("audience")
+        if audience == "all" or audience == {"all": True}:
+            return {
+                "status": "error",
+                "error": "broadcast_blocked",
+                "message": "call_airship_api does not allow broadcast audience (audience: 'all'). Use a targeted audience: tag, channel ID, named user, or segment.",
+            }
+
     request_headers = {"X-UA-Appkey": auth.app_key}
     if headers:
         request_headers.update(headers)

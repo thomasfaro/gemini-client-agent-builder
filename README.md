@@ -81,6 +81,8 @@ cd /path/to/agent-tools
 AIRSHIP_APP_KEY=your_key AIRSHIP_CLIENT_ID=your_client_id AIRSHIP_CLIENT_SECRET=your_client_secret AIRSHIP_REGION=us uv run airship-mcp
 ```
 
+> **Note:** If you are adding the MCP server to your configuration for the first time, a full restart of your CLI/assistant is recommended to ensure the new settings are detected. While `/mcp reload` restarts existing servers, it may not always discover newly created configuration files.
+
 ---
 
 ## Install Individual Skills
@@ -129,6 +131,19 @@ cp -r skills/workflows/* .cursor/skills/
 ```
 
 Or use the MCP server's `install_skills` tool to install them interactively once the server is connected.
+
+---
+
+## Install Skills for Gemini CLI
+
+Link all Airship skills to the Gemini CLI using the included setup script. Requires Python 3 and the [Gemini CLI](https://github.com/google-gemini/gemini-cli) installed and authenticated.
+
+```bash
+cd /path/to/agent-tools
+python3 tools/setup_gemini.py
+```
+
+The script flattens the nested `skills/` directory into the format Gemini expects and runs `gemini skills link --consent` to register them. Re-run it whenever skills are updated.
 
 ---
 

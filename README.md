@@ -81,6 +81,8 @@ cd /path/to/agent-tools
 AIRSHIP_APP_KEY=your_key AIRSHIP_CLIENT_ID=your_client_id AIRSHIP_CLIENT_SECRET=your_client_secret AIRSHIP_REGION=us uv run airship-mcp
 ```
 
+> **Note:** If you are adding the MCP server to your configuration for the first time, a full restart of your CLI/assistant is recommended to ensure the new settings are detected. While `/mcp reload` restarts existing servers, it may not always discover newly created configuration files.
+
 ---
 
 ## Install Individual Skills

@@ -85,6 +85,9 @@ def main():
             check=True
         )
         print("\n✅ Gemini skills linked successfully!")
+        print("\nNOTE: If you also configured the MCP server in .gemini/settings.json,")
+        print("please restart your Gemini CLI session (exit and run 'gemini' again)")
+        print("to ensure the new tools are fully loaded.")
 
     except FileNotFoundError:
         print("\nError: 'gemini' command not found.")

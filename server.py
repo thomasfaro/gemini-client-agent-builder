@@ -1005,31 +1005,19 @@ def list_skills() -> List[Dict[str, str]]:
       - category: one of "api", "mobile", "rtds", "wallet", "workflows"
       - description: one-sentence summary of what the skill does
     """
-    # Public skills take precedence over internal skills on name collision —
-    # this matches the existing `_register_skill_prompts` and `get_skill_content`
-    # behavior: the bundled public skill is the canonical version.
-    skill_dirs = [SKILLS_DIR]
-    if _INTERNAL_SKILLS_DIR.exists():
-        skill_dirs.append(_INTERNAL_SKILLS_DIR)
-
-    seen: set = set()
     skills: List[Dict[str, str]] = []
 
-    for base in skill_dirs:
-        for skill_name, skill_path in _iter_skill_dirs(base):
-            if skill_name in seen:
-                continue
-            seen.add(skill_name)
-            try:
-                text = (skill_path / "SKILL.md").read_text()
-            except OSError:
-                continue
-            meta = _parse_skill_frontmatter(text)
-            skills.append({
-                "name": skill_name,
-                "category": meta["category"] or _infer_category(skill_path),
-                "description": meta["description"],
-            })
+    for skill_name, skill_path in _iter_skill_dirs(SKILLS_DIR):
+        try:
+            text = (skill_path / "SKILL.md").read_text()
+        except OSError:
+            continue
+        meta = _parse_skill_frontmatter(text)
+        skills.append({
+            "name": skill_name,
+            "category": meta["category"] or _infer_category(skill_path),
+            "description": meta["description"],
+        })
 
     return skills
 
@@ -1059,58 +1047,50 @@ def get_skill(
       - references: list of {filename, content} for each .md file in references/
       - error: present only on failure
     """
-    # Public skills take precedence over internal skills on name collision —
-    # this matches the existing `_register_skill_prompts` and `get_skill_content`
-    # behavior: the bundled public skill is the canonical version.
-    skill_dirs = [SKILLS_DIR]
-    if _INTERNAL_SKILLS_DIR.exists():
-        skill_dirs.append(_INTERNAL_SKILLS_DIR)
+    for name, skill_path in _iter_skill_dirs(SKILLS_DIR):
+        if name != skill_name:
+            continue
 
-    for base in skill_dirs:
-        for name, skill_path in _iter_skill_dirs(base):
-            if name != skill_name:
-                continue
+        try:
+            skill_text = (skill_path / "SKILL.md").read_text()
+        except OSError:
+            return {"error": f"Could not read SKILL.md for skill: {skill_name}"}
 
-            try:
-                skill_text = (skill_path / "SKILL.md").read_text()
-            except OSError:
-                return {"error": f"Could not read SKILL.md for skill: {skill_name}"}
+        meta = _parse_skill_frontmatter(skill_text)
+        result: Dict[str, Any] = {
+            "skill_name": skill_name,
+            "category": meta["category"] or _infer_category(skill_path),
+            "description": meta["description"],
+            "content": skill_text,
+            "examples": [],
+            "references": [],
+        }
 
-            meta = _parse_skill_frontmatter(skill_text)
-            result: Dict[str, Any] = {
-                "skill_name": skill_name,
-                "category": meta["category"] or _infer_category(skill_path),
-                "description": meta["description"],
-                "content": skill_text,
-                "examples": [],
-                "references": [],
-            }
+        if include_examples:
+            examples_dir = skill_path / "examples"
+            if examples_dir.exists():
+                for f in sorted(examples_dir.iterdir()):
+                    if f.suffix == ".json" and f.is_file():
+                        try:
+                            result["examples"].append({
+                                "filename": f.name,
+                                "content": f.read_text(),
+                            })
+                        except OSError:
+                            pass
 
-            if include_examples:
-                examples_dir = skill_path / "examples"
-                if examples_dir.exists():
-                    for f in sorted(examples_dir.iterdir()):
-                        if f.suffix == ".json" and f.is_file():
-                            try:
-                                result["examples"].append({
-                                    "filename": f.name,
-                                    "content": f.read_text(),
-                                })
-                            except OSError:
-                                pass
-
-            if include_references:
-                references_dir = skill_path / "references"
-                if references_dir.exists():
-                    for f in sorted(references_dir.rglob("*.md")):
-                        if f.is_file():
-                            try:
-                                result["references"].append({
-                                    "filename": str(f.relative_to(references_dir)),
-                                    "content": f.read_text(),
-                                })
-                            except OSError:
-                                pass
+        if include_references:
+            references_dir = skill_path / "references"
+            if references_dir.exists():
+                for f in sorted(references_dir.rglob("*.md")):
+                    if f.is_file():
+                        try:
+                            result["references"].append({
+                                "filename": str(f.relative_to(references_dir)),
+                                "content": f.read_text(),
+                            })
+                        except OSError:
+                            pass
 
             return result
 

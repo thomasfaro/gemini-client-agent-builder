@@ -925,6 +925,9 @@ def _infer_category(skill_path: Path) -> str:
 @mcp.resource("airship://skills/{skill_name}")
 def get_skill_content(skill_name: str) -> str:
     """Load a skill's full reference content by name. Available for all bundled skills."""
+    # Public skills take precedence over internal skills on name collision —
+    # this matches the existing `_register_skill_prompts` and `get_skill_content`
+    # behavior: the bundled public skill is the canonical version.
     skill_dirs = [SKILLS_DIR]
     if _INTERNAL_SKILLS_DIR.exists():
         skill_dirs.append(_INTERNAL_SKILLS_DIR)
@@ -943,6 +946,9 @@ def get_skill_content(skill_name: str) -> str:
 
 def _register_skill_prompts():
     """Dynamically register all bundled skills as MCP prompts."""
+    # Public skills take precedence over internal skills on name collision —
+    # this matches the existing `_register_skill_prompts` and `get_skill_content`
+    # behavior: the bundled public skill is the canonical version.
     skill_dirs = [SKILLS_DIR]
     if _INTERNAL_SKILLS_DIR.exists():
         skill_dirs.append(_INTERNAL_SKILLS_DIR)
@@ -999,6 +1005,9 @@ def list_skills() -> List[Dict[str, str]]:
       - category: one of "api", "mobile", "rtds", "wallet", "workflows"
       - description: one-sentence summary of what the skill does
     """
+    # Public skills take precedence over internal skills on name collision —
+    # this matches the existing `_register_skill_prompts` and `get_skill_content`
+    # behavior: the bundled public skill is the canonical version.
     skill_dirs = [SKILLS_DIR]
     if _INTERNAL_SKILLS_DIR.exists():
         skill_dirs.append(_INTERNAL_SKILLS_DIR)
@@ -1050,6 +1059,9 @@ def get_skill(
       - references: list of {filename, content} for each .md file in references/
       - error: present only on failure
     """
+    # Public skills take precedence over internal skills on name collision —
+    # this matches the existing `_register_skill_prompts` and `get_skill_content`
+    # behavior: the bundled public skill is the canonical version.
     skill_dirs = [SKILLS_DIR]
     if _INTERNAL_SKILLS_DIR.exists():
         skill_dirs.append(_INTERNAL_SKILLS_DIR)

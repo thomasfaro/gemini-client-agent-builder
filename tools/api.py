@@ -838,7 +838,8 @@ async def call_airship_api(
         return {"status": "error", "message": f"Unsupported HTTP method: {method}"}
 
     # Block broadcast pushes — same guard as send_custom_push.
-    if method == "POST" and path.rstrip("/") in ("/api/push", "/api/push/validate"):
+    _push_paths = ("/api/push", "/api/push/validate", "/api/templates/push")
+    if method == "POST" and path.rstrip("/") in _push_paths:
         audience = (body or {}).get("audience")
         if audience == "all" or audience == {"all": True}:
             return {

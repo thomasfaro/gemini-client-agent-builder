@@ -810,6 +810,81 @@ async def send_message_center_message(
     return await send_custom_push(payload)
 
 
+async def call_airship_api(
+    method: str,
+    path: str,
+    body: Optional[Dict[str, Any]] = None,
+    params: Optional[Dict[str, Any]] = None,
+    headers: Optional[Dict[str, str]] = None,
+) -> Dict[str, Any]:
+    """
+    Make an authenticated call to the Airship API.
+
+    The client is already configured with the correct base URL and OAuth token.
+    X-UA-Appkey is automatically injected (required by some endpoints).
+
+    Args:
+        method: HTTP method (GET, POST, PUT, DELETE, PATCH)
+        path: API path, e.g. "/api/channels/email/lookup"
+        body: Optional JSON request body
+        params: Optional query string parameters
+        headers: Optional additional headers to merge in
+    """
+    if client is None:
+        return _not_ready()
+
+    method = method.upper()
+    if method not in ("GET", "POST", "PUT", "DELETE", "PATCH"):
+        return {"status": "error", "message": f"Unsupported HTTP method: {method}"}
+
+    # Block broadcast pushes — same guard as send_custom_push.
+    _push_paths = ("/api/push", "/api/push/validate", "/api/templates/push")
+    if method == "POST" and path.rstrip("/") in _push_paths:
+        audience = (body or {}).get("audience")
+        if audience == "all" or audience == {"all": True}:
+            return {
+                "status": "error",
+                "error": "broadcast_blocked",
+                "message": "call_airship_api does not allow broadcast audience (audience: 'all'). Use a targeted audience: tag, channel ID, named user, or segment.",
+            }
+
+    request_headers = {"X-UA-Appkey": auth.app_key}
+    if headers:
+        request_headers.update(headers)
+
+    try:
+        response = await client.request(
+            method,
+            path,
+            json=body,
+            params=params,
+            headers=request_headers,
+        )
+        try:
+            response_body = response.json()
+        except Exception:
+            response_body = response.text
+
+        return {
+            "status": "success" if response.is_success else "error",
+            "status_code": response.status_code,
+            "path": path,
+            "method": method,
+            "response": response_body,
+        }
+    except httpx.HTTPStatusError as e:
+        error_response = transform_api_error(e)
+        error_response.update({"path": path, "method": method})
+        return error_response
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e),
+            "path": path,
+            "method": method,
+        }
+
+
 async def validate_push_payload(
     payload: Dict[str, Any]
 ) -> Dict[str, Any]:

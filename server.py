@@ -128,13 +128,26 @@ async def _fetch_skills(ctx=None) -> Dict[str, Any]:
 @asynccontextmanager
 async def lifespan(app):
     """Server lifespan: initialize OAuth on startup; clean up on shutdown."""
-    try:
-        await api_tools.init_oauth()
-    except Exception as e:
-        print(f"OAuth initialization failed: {e}", file=sys.stderr)
-        raise
+    _creds_present = all([
+        os.environ.get("AIRSHIP_CLIENT_ID"),
+        os.environ.get("AIRSHIP_CLIENT_SECRET"),
+        os.environ.get("AIRSHIP_APP_KEY"),
+    ])
+    if _creds_present:
+        try:
+            await api_tools.init_oauth()
+        except Exception as e:
+            print(f"OAuth initialization failed: {e}", file=sys.stderr)
+            raise
+    else:
+        print(
+            "OAuth credentials not set — API tools unavailable. "
+            "Skill tools (list_skills, get_skill) remain fully functional.",
+            file=sys.stderr,
+        )
     yield
-    await api_tools.cleanup()
+    if _creds_present:
+        await api_tools.cleanup()
 
 
 # Create FastMCP server
@@ -874,12 +887,47 @@ def get_troubleshooting(topic: str) -> str:
 
 
 # =============================================================================
+# Skill Helpers
+# =============================================================================
+
+def _parse_skill_frontmatter(text: str) -> dict:
+    """Extract name, description, category from SKILL.md YAML frontmatter."""
+    result = {"name": "", "description": "", "category": ""}
+    if not text.startswith("---"):
+        return result
+    end = text.find("\n---", 3)
+    if end == -1:
+        return result
+    for line in text[3:end].splitlines():
+        line = line.strip()
+        if line.startswith("name:"):
+            result["name"] = line.split(":", 1)[1].strip().strip('"')
+        elif line.startswith("description:"):
+            result["description"] = line.split(":", 1)[1].strip().strip('"')
+        elif line.startswith("category:"):
+            result["category"] = line.split(":", 1)[1].strip().strip('"')
+    return result
+
+
+def _infer_category(skill_path: Path) -> str:
+    """Derive category from directory layout when frontmatter omits it."""
+    try:
+        parts = skill_path.relative_to(SKILLS_DIR).parts
+        return parts[0] if len(parts) >= 2 else ""
+    except ValueError:
+        return ""
+
+
+# =============================================================================
 # Skill Resources (AI-readable reference content)
 # =============================================================================
 
 @mcp.resource("airship://skills/{skill_name}")
 def get_skill_content(skill_name: str) -> str:
     """Load a skill's full reference content by name. Available for all bundled skills."""
+    # Public skills take precedence over internal skills on name collision —
+    # this matches the existing `_register_skill_prompts` and `get_skill_content`
+    # behavior: the bundled public skill is the canonical version.
     skill_dirs = [SKILLS_DIR]
     if _INTERNAL_SKILLS_DIR.exists():
         skill_dirs.append(_INTERNAL_SKILLS_DIR)
@@ -898,6 +946,9 @@ def get_skill_content(skill_name: str) -> str:
 
 def _register_skill_prompts():
     """Dynamically register all bundled skills as MCP prompts."""
+    # Public skills take precedence over internal skills on name collision —
+    # this matches the existing `_register_skill_prompts` and `get_skill_content`
+    # behavior: the bundled public skill is the canonical version.
     skill_dirs = [SKILLS_DIR]
     if _INTERNAL_SKILLS_DIR.exists():
         skill_dirs.append(_INTERNAL_SKILLS_DIR)
@@ -921,11 +972,8 @@ def _register_skill_prompts():
             prompt_content = prompt_path.read_text() if prompt_path.exists() else skill_content
 
             # Extract description from frontmatter
-            description = f"Airship skill: {skill_name}"
-            for line in skill_content.splitlines():
-                if line.startswith("description:"):
-                    description = line.split(":", 1)[1].strip().strip('"')
-                    break
+            meta = _parse_skill_frontmatter(skill_content)
+            description = meta["description"] or f"Airship skill: {skill_name}"
 
             def make_prompt_fn(content):
                 def prompt_fn() -> str:
@@ -935,6 +983,153 @@ def _register_skill_prompts():
             mcp.prompt(make_prompt_fn(prompt_content), name=skill_name, description=description)
 
 _register_skill_prompts()
+
+
+# =============================================================================
+# Skill Tools (MCP tools for coding agents — Cursor, Windsurf, Zed)
+# =============================================================================
+
+@mcp.tool
+def list_skills() -> List[Dict[str, str]]:
+    """List all available Airship skills with their names, categories, and descriptions.
+
+    Call this first to discover what skills are available, then use get_skill()
+    to fetch a specific skill's full instructions and examples.
+
+    Skills cover: Airship API operations (push, channels, tags, segments),
+    mobile SDK setup (iOS, Android, React Native, Flutter), Real-Time Data
+    Streaming (RTDS), wallet passes, and multi-step automation workflows.
+
+    Returns a list of objects with:
+      - name: the skill identifier (pass to get_skill)
+      - category: one of "api", "mobile", "rtds", "wallet", "workflows"
+      - description: one-sentence summary of what the skill does
+    """
+    skills: List[Dict[str, str]] = []
+
+    for skill_name, skill_path in _iter_skill_dirs(SKILLS_DIR):
+        try:
+            text = (skill_path / "SKILL.md").read_text()
+        except OSError:
+            continue
+        meta = _parse_skill_frontmatter(text)
+        skills.append({
+            "name": skill_name,
+            "category": meta["category"] or _infer_category(skill_path),
+            "description": meta["description"],
+        })
+
+    return skills
+
+
+@mcp.tool
+def get_skill(
+    skill_name: str,
+    include_examples: bool = True,
+    include_references: bool = True,
+) -> Dict[str, Any]:
+    """Fetch the full content of an Airship skill by name.
+
+    Use list_skills() first to discover valid skill names, then call this
+    to load the instructions, examples, and reference docs for a specific skill.
+    Apply the skill's instructions to accomplish the user's task.
+
+    Args:
+        skill_name: The skill identifier from list_skills() (e.g. "push-notification").
+        include_examples: Include JSON example payloads from the skill's examples/ dir.
+        include_references: Include reference Markdown docs from the skill's references/ dir.
+                            Set to False for the "sdk-reference" skill (~170 KB of docs).
+
+    Returns a dict with:
+      - skill_name, category, description
+      - content: full SKILL.md text (instructions, schemas, workflows)
+      - examples: list of {filename, content} for each JSON file in examples/
+      - references: list of {filename, content} for each .md file in references/
+      - error: present only on failure
+    """
+    for name, skill_path in _iter_skill_dirs(SKILLS_DIR):
+        if name != skill_name:
+            continue
+
+        try:
+            skill_text = (skill_path / "SKILL.md").read_text()
+        except OSError:
+            return {"error": f"Could not read SKILL.md for skill: {skill_name}"}
+
+        meta = _parse_skill_frontmatter(skill_text)
+        result: Dict[str, Any] = {
+            "skill_name": skill_name,
+            "category": meta["category"] or _infer_category(skill_path),
+            "description": meta["description"],
+            "content": skill_text,
+            "examples": [],
+            "references": [],
+        }
+
+        if include_examples:
+            examples_dir = skill_path / "examples"
+            if examples_dir.exists():
+                for f in sorted(examples_dir.iterdir()):
+                    if f.suffix == ".json" and f.is_file():
+                        try:
+                            result["examples"].append({
+                                "filename": f.name,
+                                "content": f.read_text(),
+                            })
+                        except OSError:
+                            pass
+
+        if include_references:
+            references_dir = skill_path / "references"
+            if references_dir.exists():
+                for f in sorted(references_dir.rglob("*.md")):
+                    if f.is_file():
+                        try:
+                            result["references"].append({
+                                "filename": str(f.relative_to(references_dir)),
+                                "content": f.read_text(),
+                            })
+                        except OSError:
+                            pass
+
+            return result
+
+    return {"error": f"Skill not found: {skill_name!r}. Call list_skills() to see available skills."}
+
+
+# =============================================================================
+# Generic API Execution Tool
+# =============================================================================
+
+@mcp.tool
+async def call_airship_api(
+    method: str,
+    path: str,
+    body: Dict[str, Any] = None,
+    params: Dict[str, Any] = None,
+    headers: Dict[str, str] = None,
+) -> Dict[str, Any]:
+    """Make an authenticated call to any Airship API endpoint.
+
+    Use this tool to execute API operations described in skills fetched via get_skill().
+    The client is already authenticated with OAuth — do not add Authorization headers.
+    X-UA-Appkey is injected automatically (required by some endpoints like custom-events and SMS).
+
+    Workflow:
+      1. Call get_skill("skill-name") to get the endpoint, method, and payload schema
+      2. Call this tool with the values from the skill instructions
+
+    Args:
+        method: HTTP method — GET, POST, PUT, DELETE, or PATCH
+        path: API path starting with /api/, e.g. "/api/channels/email/lookup"
+        body: JSON request body (for POST/PUT/PATCH)
+        params: Query string parameters (for GET)
+        headers: Additional headers to include (rarely needed — X-UA-Appkey is auto-injected)
+
+    Returns:
+        status, status_code, path, method, and the full response body
+    """
+    return await api_tools.call_airship_api(method, path, body, params, headers)
 
 
 # =============================================================================

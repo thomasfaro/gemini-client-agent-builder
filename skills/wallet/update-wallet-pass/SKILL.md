@@ -24,24 +24,72 @@ This skill enables agents to update fields on a wallet pass using an external ID
 ## Authentication
 
 **Preferred**: OAuth 2.0 Bearer token  
-**Fallback**: Basic Auth (`app_key:master_secret`) for environments not using OAuth
+**Fallback**: Basic Auth (`project_key:project_secret`) for environments not using OAuth
 
 ### OAuth (recommended)
 
-1. Request a token from the OAuth endpoint for your region.
-2. Use the token as `Authorization: Bearer <access_token>`.
-3. Ensure token includes the `wpas` scope for pass operations.
+There are two ways to authenticate to the token endpoint. Both return a Bearer token used in the same way. Choose based on which credentials were generated when creating the OAuth client in `Settings > OAuth`.
 
-OAuth token endpoints:
+**Token endpoints:**
 - US: `https://oauth2.asnapius.com/token`
 - EU: `https://oauth2.asnapieu.com/token`
 
-**URL-encode credentials**: When building the Basic auth header for the token request, URL-encode the client ID and secret before base64-encoding (`base64(url_encode(id) + ":" + url_encode(secret))`); raw values will fail if either contains special characters. Include `scope=wpas` and `Accept: application/json` in the token request.
+In both flows, use the returned `access_token` as `Authorization: Bearer <access_token>`. Tokens expire in 1 hour (`expires_in: 3600`).
+
+#### JWT assertion (private_key_jwt)
+
+The more secure option. Requires: **Client ID**, **private key**, and **app key**.
+
+- **Client ID** — identifies the OAuth client (`Settings > OAuth`)
+- **Private key** — signs the JWT assertion (`Settings > OAuth`, generated at credential creation)
+- **App key** — 22-character key identifying the Wallet project (`Settings > API`); goes in the `sub` claim as `app:<app_key>`
+
+Build a signed JWT with these claims (ES384 algorithm):
+
+| Claim | Value |
+|-------|-------|
+| `alg` (header) | `ES384` |
+| `kid` (header) | Client ID |
+| `iss` | Client ID |
+| `aud` | Token endpoint URL |
+| `iat` | Current Unix timestamp |
+| `exp` | `iat` + up to 600 seconds |
+| `sub` | `app:<app_key>` — 22-character app key, no spaces |
+| `nonce` | Unique string per request (must not be reused within 2 hours) |
+| `scope` | Space-delimited scopes, e.g. `wpas` |
+
+```bash
+curl -s -X POST "https://oauth2.asnapius.com/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -H "Accept: application/json" \
+  --data-urlencode "grant_type=client_credentials" \
+  --data-urlencode "assertion=<signed_jwt>"
+```
+
+Do not include an `Authorization` header when using this flow.
+
+#### Client secret (client_secret_basic)
+
+Simpler but less secure. Requires **Allow Basic Auth** to be enabled when the OAuth credentials were created — this generates a **Client Secret**. Requires: **Client ID**, **Client Secret**, and **app key**.
+
+```bash
+curl -s -X POST "https://oauth2.asnapius.com/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -H "Accept: application/json" \
+  -H "Authorization: Basic <base64(client_id:client_secret)>" \
+  --data-urlencode "grant_type=client_credentials" \
+  --data-urlencode "sub=app:<app_key>" \
+  --data-urlencode "scope=wpas"
+```
+
+Note: `sub` and `scope` are body parameters in this flow, not JWT claims.
 
 ### Basic Auth (fallback)
 
-If OAuth is not configured, use:
-`Authorization: Basic <base64(app_key:master_secret)>`
+If OAuth is not configured, use the Wallet project credentials:
+`Authorization: Basic <base64(project_key:project_secret)>`
+
+These are found in the Wallet project dashboard under `Settings > API`. They are not the same as Airship Engage app key/master secret.
 
 ## Request Headers
 
@@ -53,7 +101,7 @@ Authorization: Bearer <access_token>
 ```
 
 If using fallback auth:
-`Authorization: Basic <base64(app_key:master_secret)>`
+`Authorization: Basic <base64(project_key:project_secret)>`
 
 ## Request Schema
 

@@ -55,6 +55,31 @@ _SKILLS_REPO_URL = "https://github.com/urbanairship/agent-tools.git"
 _INTERNAL_SKILLS_DIR = Path(__file__).parent.parent / "internal"
 
 
+def _allowed_project_roots() -> List[Path]:
+    """Roots that user-supplied project_path arguments must live under."""
+    roots = [Path.home().resolve()]
+    extra = os.environ.get("AIRSHIP_MCP_PROJECT_ROOTS", "")
+    for entry in extra.split(os.pathsep):
+        entry = entry.strip()
+        if entry:
+            try:
+                roots.append(Path(entry).expanduser().resolve())
+            except (OSError, RuntimeError):
+                continue
+    return roots
+
+
+def _resolve_project_path(project_path: str) -> Path:
+    """Resolve a user-supplied project_path and ensure it stays inside an allowed root."""
+    resolved = Path(project_path).expanduser().resolve()
+    if not any(resolved == root or resolved.is_relative_to(root) for root in _allowed_project_roots()):
+        raise ValueError(
+            f"project_path must be inside your home directory "
+            f"(or AIRSHIP_MCP_PROJECT_ROOTS). Got: {project_path}"
+        )
+    return resolved
+
+
 def _resolve_skills_src() -> Optional[Path]:
     """Return skills source dir for install_skills tool."""
     if SKILLS_DIR.exists() and any(SKILLS_DIR.iterdir()):
@@ -780,8 +805,11 @@ async def install_skills(ctx: Context, project_path: str) -> Dict[str, Any]:
 
     available_skills = [d.name for d in skills_src.iterdir() if d.is_dir() and not d.name.startswith('.')]
 
-    project = Path(project_path).expanduser().resolve()
-    if not project.exists():
+    try:
+        project = _resolve_project_path(project_path)
+    except ValueError as e:
+        return {"status": "error", "message": str(e)}
+    if not project.exists() or not project.is_dir():
         return {"status": "error", "message": f"Project directory does not exist: {project_path}"}
 
     cursor_skills = project / ".cursor" / "skills"
@@ -1343,7 +1371,10 @@ async def _verify_build_impl(
     clean: bool = False,
 ) -> Dict[str, Any]:
     """Internal build verification logic - callable from other functions."""
-    project = Path(project_path)
+    try:
+        project = _resolve_project_path(project_path)
+    except ValueError as e:
+        return {"status": "error", "message": str(e)}
 
     # Auto-detect platform
     if not platform:

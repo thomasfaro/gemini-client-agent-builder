@@ -137,8 +137,9 @@ class MigrationFetcher:
                 return resp.text
 
         except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error fetching migration guide: {e}")
+            status = getattr(e.response, "status_code", "unknown")
+            logger.error(f"HTTP {status} fetching migration guide for {repo}/{path}")
             return ""
         except Exception as e:
-            logger.error(f"Error fetching migration guide: {e}")
+            logger.error(f"Error fetching migration guide for {repo}/{path}: {type(e).__name__}")
             return ""

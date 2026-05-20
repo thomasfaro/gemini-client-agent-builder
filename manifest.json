@@ -10,6 +10,9 @@
     "url": "https://airship.com"
   },
   "license": "Apache-2.0",
+  "privacy_policies": [
+    "https://www.airship.com/legal/privacy/"
+  ],
   "keywords": ["airship", "push", "mobile", "sdk", "api", "notifications"],
   "compatibility": {
     "platforms": ["darwin", "win32", "linux"],

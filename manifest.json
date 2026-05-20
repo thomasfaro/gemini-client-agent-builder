@@ -47,7 +47,7 @@
       "title": "OAuth Client ID",
       "description": "From your project Settings > OAuth in the Airship dashboard.",
       "required": true,
-      "sensitive": false
+      "sensitive": true
     },
     "client_secret": {
       "type": "string",

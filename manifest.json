@@ -10,6 +10,9 @@
     "url": "https://airship.com"
   },
   "license": "Apache-2.0",
+  "privacy_policies": [
+    "https://www.airship.com/legal/privacy/"
+  ],
   "keywords": ["airship", "push", "mobile", "sdk", "api", "notifications"],
   "compatibility": {
     "platforms": ["darwin", "win32", "linux"],
@@ -44,7 +47,7 @@
       "title": "OAuth Client ID",
       "description": "From your project Settings > OAuth in the Airship dashboard.",
       "required": true,
-      "sensitive": false
+      "sensitive": true
     },
     "client_secret": {
       "type": "string",

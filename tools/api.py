@@ -161,6 +161,22 @@ def _not_ready() -> Dict[str, Any]:
     }
 
 
+_AUDIENCE_COMPOSERS = ("or", "and", "not")
+
+
+def _is_broadcast(node: Any) -> bool:
+    """True if `node` is or transitively contains an Airship broadcast selector."""
+    if node == "all":
+        return True
+    if isinstance(node, dict):
+        if node.get("all"):
+            return True
+        return any(_is_broadcast(node[k]) for k in _AUDIENCE_COMPOSERS if k in node)
+    if isinstance(node, list):
+        return any(_is_broadcast(c) for c in node)
+    return False
+
+
 # Helper functions for API calls
 #
 # NOTE: Segment endpoints (/api/segments) are not covered by any OAuth 2.0
@@ -546,7 +562,7 @@ async def send_custom_push(
         return _not_ready()
 
     audience = payload.get("audience")
-    if audience == "all" or audience == {"all": True}:
+    if _is_broadcast(audience):
         return {
             "status": "error",
             "error": "broadcast_blocked",
@@ -841,7 +857,7 @@ async def call_airship_api(
     _push_paths = ("/api/push", "/api/push/validate", "/api/templates/push")
     if method == "POST" and path.rstrip("/") in _push_paths:
         audience = (body or {}).get("audience")
-        if audience == "all" or audience == {"all": True}:
+        if _is_broadcast(audience):
             return {
                 "status": "error",
                 "error": "broadcast_blocked",

@@ -1,10 +1,10 @@
 # Airship Agent Tools - Developer Guide
 
-Internal-facing notes for working on this repo and cutting releases.
+Internal-facing notes for working on this repo and performing releases.
 
 ## Repository layout
 
-`agent-tools-dev` (this repo) is the development repo. `agent-tools` is the public mirror published under the `urbanairship` org. Day-to-day work happens on `agent-tools-dev/main`; releases are tagged here and pushed to the public mirror.
+`agent-tools-dev` (this repo) is the development repo. `agent-tools` is the public repo. Day-to-day work happens on `agent-tools-dev/main`. Releases are tagged here and pushed to the public repo.
 
 ## One-time setup
 

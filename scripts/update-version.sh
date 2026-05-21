@@ -35,4 +35,4 @@ bump "$root/pyproject.toml"  '(?m)^version\s*=\s*"[^"]*"'  "version = \"$version
 echo "Updated to $version:"
 echo "  manifest.json"
 echo "  pyproject.toml"
-echo "Next: update CHANGELOG.md, commit, then 'gtag v$version --public'."
+echo "Next: update CHANGELOG.md, commit, then follow the release steps in DEV_README.md."

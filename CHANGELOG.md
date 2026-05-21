@@ -10,6 +10,7 @@ Security and process improvements from the Anthropic MCP Directory review, plus 
 - Marked the OAuth `client_id` as `sensitive` so Claude Desktop stores it in the system keychain.
 - Constrained `project_path` arguments on `install_skills` and `verify_build` to the user's home directory, overridable with `AIRSHIP_MCP_PROJECT_ROOTS`.
 - Reduced HTTP error logging in the migration fetcher to status code and repo path instead of full exception strings.
+- Fixed the broadcast audience guard in `send_custom_push` and `call_airship_api` to walk `or`, `and`, and `not` composers so structurally valid bypasses can no longer reach the push endpoint.
 - Added `CHANGELOG.md`, `DEV_README.md`, and `scripts/update-version.sh` to formalize the release process.
 
 ## Version 1.0.0 - April 16, 2026

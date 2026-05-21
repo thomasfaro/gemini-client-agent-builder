@@ -2,7 +2,17 @@
 
 [All Releases](https://github.com/urbanairship/agent-tools/releases)
 
-## Version 1.0.0 - May 20, 2026
+## Version 1.1.0 - May 21, 2026
+Security and process improvements from the Anthropic MCP Directory review, plus versioning and release tooling.
+
+### Changes
+- Added a `privacy_policies` declaration in the MCPB manifest.
+- Marked the OAuth `client_id` as `sensitive` so Claude Desktop stores it in the system keychain.
+- Constrained `project_path` arguments on `install_skills` and `verify_build` to the user's home directory, overridable with `AIRSHIP_MCP_PROJECT_ROOTS`.
+- Reduced HTTP error logging in the migration fetcher to status code and repo path instead of full exception strings.
+- Added `CHANGELOG.md`, `DEV_README.md`, and `scripts/update-version.sh` to formalize the release process.
+
+## Version 1.0.0 - April 16, 2026
 Initial public release of the Airship Agent Tools MCP server and skill bundle.
 
 ### Changes

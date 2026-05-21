@@ -1,0 +1,14 @@
+# Build artifacts
+*.mcpb
+gemini_build/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Local tooling state (machine-specific paths)
+.gemini/

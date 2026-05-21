@@ -52,9 +52,9 @@ Versioning follows SemVer. The canonical version lives in `manifest.json` and is
 5. **Tag and push the tag to both remotes.**
 
    ```bash
-   git tag -a v1.1.0 -m "version 1.1.0"
-   git push origin v1.1.0
-   git push public v1.1.0
+   git tag -a 1.1.0 -m "version 1.1.0"
+   git push origin 1.1.0
+   git push public 1.1.0
    ```
 
 6. **Build the MCPB bundle.**

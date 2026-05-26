@@ -2,7 +2,7 @@
 
 [All Releases](https://github.com/urbanairship/agent-tools/releases)
 
-## Version 1.1.1 - May 23, 2026
+## Version 1.1.1 - May 26, 2026
 Plugin loader fix and release-tooling cleanup. No MCP server behavior changes.
 
 ### Changes

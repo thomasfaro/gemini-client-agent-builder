@@ -2,6 +2,15 @@
 
 [All Releases](https://github.com/urbanairship/agent-tools/releases)
 
+## Version 1.1.1 - May 23, 2026
+Plugin loader fix and release-tooling cleanup. No MCP server behavior changes.
+
+### Changes
+- Fixed the `skills` array in `.claude-plugin/plugin.json` to point at the 31 individual skill directories instead of the five category directories, so all skills are now reachable via `claude plugin install airship`.
+- Aligned `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` to the shared repo version and extended `scripts/update-version.sh` to bump them alongside `manifest.json` and `pyproject.toml`.
+- Dropped the `${VAR:-default}` syntax from the MCP env block in `plugin.json` in favor of bare `${VAR}`, which is the form documented by Claude Code.
+- Removed the stale top-level `MCP_CONFIG.json` example; the README already includes an up-to-date inline example.
+
 ## Version 1.1.0 - May 21, 2026
 Security and process improvements from the Anthropic MCP Directory review, plus versioning and release tooling.
 

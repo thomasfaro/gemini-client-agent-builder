@@ -29,10 +29,14 @@ open(path, 'w').write(new)
 " "$file" "$pattern" "$replacement"
 }
 
-bump "$root/manifest.json"   '"version":\s*"[^"]*"'        "\"version\": \"$version\""
-bump "$root/pyproject.toml"  '(?m)^version\s*=\s*"[^"]*"'  "version = \"$version\""
+bump "$root/manifest.json"                  '"version":\s*"[^"]*"'        "\"version\": \"$version\""
+bump "$root/pyproject.toml"                 '(?m)^version\s*=\s*"[^"]*"'  "version = \"$version\""
+bump "$root/.claude-plugin/plugin.json"     '"version":\s*"[^"]*"'        "\"version\": \"$version\""
+bump "$root/.claude-plugin/marketplace.json" '"version":\s*"[^"]*"'       "\"version\": \"$version\""
 
 echo "Updated to $version:"
 echo "  manifest.json"
 echo "  pyproject.toml"
-echo "Next: update CHANGELOG.md, commit, then follow the release steps in DEV_README.md."
+echo "  .claude-plugin/plugin.json"
+echo "  .claude-plugin/marketplace.json"
+echo "Next: update CHANGELOG.md and commit."

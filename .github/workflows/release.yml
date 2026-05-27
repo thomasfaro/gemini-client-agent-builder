@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+**"
+
+jobs:
+  release:
+    if: github.repository == 'urbanairship/agent-tools'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get the version
+        id: get_version
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          VERSION="${REF#refs/tags/}"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check version matches manifest
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: bash ./scripts/check_version.sh "$VERSION"
+
+      - name: Extract release notes from CHANGELOG
+        id: notes
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: |
+          set -euo pipefail
+          NOTES=$(awk -v ver="$VERSION" '
+            $0 ~ "^## Version " ver "($|[ ]-)" {flag=1; next}
+            $0 ~ "^## Version " {flag=0}
+            flag
+          ' CHANGELOG.md)
+          NOTES="$(echo "$NOTES" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+          if [ -z "$NOTES" ]; then
+            echo "::error::Could not find notes for Version $VERSION in CHANGELOG.md"
+            exit 1
+          fi
+          DELIMITER="EOF_$(uuidgen)"
+          {
+            echo "NOTES<<$DELIMITER"
+            echo "$NOTES"
+            echo "$DELIMITER"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          name: ${{ steps.get_version.outputs.VERSION }}
+          body: ${{ steps.notes.outputs.NOTES }}
+          draft: false
+          prerelease: false

@@ -63,7 +63,7 @@ Add to your assistant's MCP config file:
 }
 ```
 
-Create OAuth client credentials in the Airship dashboard: next to your project name, select the dropdown menu, then **Settings**. Under **Project settings**, select **OAuth**. Enable **Allow Basic Auth** when creating credentials to generate a Client Secret. Enable the **Push**, **Channels**, and **Named Users** scopes at minimum.
+Create OAuth client credentials in the Airship dashboard: next to your project name, select the dropdown menu, then **Settings**. Under **Project settings**, select **OAuth**. Enable **Allow Basic Auth** when creating credentials to generate a Client Secret. Enable the **Push**, **Channels**, **Named Users**, and **Reports** scopes at minimum. The Reports scope is required for the reports skills (push performance analysis, app activity summaries) and any direct calls to `/api/reports/*`.
 
 ### Config file locations by assistant
 

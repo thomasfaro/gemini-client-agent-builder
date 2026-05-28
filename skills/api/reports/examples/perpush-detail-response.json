@@ -1,0 +1,36 @@
+{
+  "_status_code": 200,
+  "app_key": "ISex_TTJRuarzs9-o_Gkhg",
+  "push_id": "3b47b010-5a0b-11f1-8ff2-000000a1ace1",
+  "created": 0,
+  "sends": 370,
+  "alerting_sends": 347,
+  "silent_sends": 23,
+  "direct_responses": 0,
+  "influenced_responses": 0,
+  "rich_sends": 0,
+  "rich_responses": 0,
+  "rich_deletions": 0,
+  "platforms": {
+    "ios": {
+      "sends": 297,
+      "direct_responses": 0,
+      "influenced_responses": 0
+    },
+    "android": {
+      "sends": 73,
+      "direct_responses": 0,
+      "influenced_responses": 0
+    },
+    "amazon": {
+      "sends": 0,
+      "direct_responses": 0,
+      "influenced_responses": 0
+    },
+    "web": {
+      "sends": 0,
+      "direct_responses": 0,
+      "influenced_responses": 0
+    }
+  }
+}

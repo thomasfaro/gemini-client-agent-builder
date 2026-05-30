@@ -15,7 +15,20 @@ Airship tools and skills for AI assistants.
 
 Claude Code plugins expose skills as slash commands and also run the MCP server automatically.
 
-### Via marketplace (recommended)
+### Via the community marketplace (recommended)
+
+The plugin is published in Anthropic's community marketplace, no clone required:
+
+```bash
+claude plugin marketplace add anthropics/claude-plugins-community
+claude plugin install airship-agent-tools@claude-community
+```
+
+Skills are available as `/airship-agent-tools:<skill-name>`.
+
+### From a local clone
+
+Use this when developing against a checkout of this repo:
 
 ```bash
 claude plugin marketplace add /path/to/agent-tools

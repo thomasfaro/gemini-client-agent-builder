@@ -17,7 +17,7 @@ Claude Code plugins expose skills as slash commands and also run the MCP server 
 
 ### Via the community marketplace (recommended)
 
-The plugin is published in Anthropic's community marketplace, no clone required:
+The plugin is published in Anthropic's community marketplace:
 
 ```bash
 claude plugin marketplace add anthropics/claude-plugins-community

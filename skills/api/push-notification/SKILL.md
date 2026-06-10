@@ -360,7 +360,7 @@ Before sending, you can validate your push payload:
 ## Workflows Using This Skill
 
 - **Complete User Onboarding**: Register email → Register SMS → Associate both → Send welcome
-  - See [Workflow Guide](../../docs/workflows.md#complete-user-onboarding)
+  - See [Workflow Guide](../../workflows/complete-user-onboarding/SKILL.md)
 
 ## Related Documentation
 

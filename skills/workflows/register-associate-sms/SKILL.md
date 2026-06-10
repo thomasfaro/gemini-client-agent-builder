@@ -89,9 +89,7 @@ Content-Type: application/json
 {
   "named_user_id": "user_12345",
   "channel_id": "df6a6b50-9843-0304-d5a5-743f246a4946",
-  "channel_type": "sms",
-  "msisdn": "15035556789",
-  "sender": "12345"
+  "device_type": "sms"
 }
 ```
 

@@ -240,9 +240,9 @@ Invalid or missing authentication credentials.
 ## Workflows Using This Skill
 
 - **Register and Associate SMS**: Register SMS → Associate with named user
-  - See [Workflow Guide](../../docs/workflows.md#register-associate-sms)
+  - See [Workflow Guide](../../workflows/register-associate-sms/SKILL.md)
 - **Complete User Onboarding**: Register email → Register SMS → Associate both → Send welcome
-  - See [Workflow Guide](../../docs/workflows.md#complete-user-onboarding)
+  - See [Workflow Guide](../../workflows/complete-user-onboarding/SKILL.md)
 
 ## Related Skills
 

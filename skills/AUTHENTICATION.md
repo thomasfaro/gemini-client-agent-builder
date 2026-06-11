@@ -107,8 +107,11 @@ Use `go.urbanairship.com` (US) or `go.airship.eu` (EU) as the base URL.
 | tags (channel tags) | `chn` |
 | create-pipeline | `pln` |
 | list-pipelines | `pln` |
+| reports / app-activity-summary / push-performance-analysis | `rpt` |
 
 Multiple scopes can be requested in one token: `scope=psh chn nu`
+
+**Updating scopes:** A `401 "Missing required scope"` means the OAuth credential lacks a scope the skill needs. Enable it in the dashboard (**Settings → OAuth →** edit the credential), then restart your MCP client so the cached token is reissued with the new scope. Adding a scope does not change the Client ID or Secret.
 
 ---
 

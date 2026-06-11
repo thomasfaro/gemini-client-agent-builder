@@ -22,7 +22,7 @@ All endpoints are `GET` against the Go API base (`https://api.asnapius.com` for 
 | `/api/reports/activity/details?start=&end=&limit=` | Recent push activity log (discovery entry point). Each row has `push_id`, `timestamp`, `type`, **`experiment` (bool)**, `details.delivery`, `details.interaction`. `start` and `end` required, `limit` defaults to 100, follow `next_page`. | — | near-real-time |
 | `/api/reports/sends?start=&end=&precision=` | Push send counts over time | DAILY, MONTHLY | ~5 min |
 | `/api/reports/opens?start=&end=&precision=` | App-open counts over time | DAILY, MONTHLY | continuously updating |
-| `/api/reports/devices` | Opted-in vs installed device counts (point-in-time) | — | daily |
+| `/api/reports/devices` | Opted-in vs total unique device counts (point-in-time) | — | daily |
 | `/api/reports/optins?start=&end=&precision=` | Opt-in event counts over time | DAILY, MONTHLY | ~30 min |
 | `/api/reports/optouts?start=&end=&precision=` | Opt-out event counts over time | DAILY, MONTHLY | ~30 min |
 | `/api/reports/responses/{push_id}` | Smaller per-push response summary | — | ~30 min |
@@ -313,4 +313,4 @@ Files include `_status_code` so the model can see the HTTP code that produced ea
 
 - [Reports API Reference](https://www.airship.com/docs/developer/rest-api/ua/operations/reports/)
 - [Engagement Reports dashboard guide](https://www.airship.com/docs/guides/reports/engagement/)
-- [OAuth setup](../../../README.md#install-the-mcp-server)
+- [Authentication Guide](../../AUTHENTICATION.md)

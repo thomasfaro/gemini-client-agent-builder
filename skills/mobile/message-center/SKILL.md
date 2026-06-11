@@ -72,7 +72,7 @@ Open the message center in your app to verify the message appears.
 
 ## Customization
 
-For custom UI, see the `custom-views` skill or `references/customization.md`.
+For custom UI, see the `custom-views` skill.
 
 ## MCP Tools (Optional)
 

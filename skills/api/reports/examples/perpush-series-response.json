@@ -1,0 +1,139 @@
+{
+  "_status_code": 200,
+  "_request_params": {
+    "start": "2026-04-28T00:00:00",
+    "end": "2026-05-28T00:00:00",
+    "precision": "HOURLY"
+  },
+  "app_key": "ISex_TTJRuarzs9-o_Gkhg",
+  "push_id": "3b47b010-5a0b-11f1-8ff2-000000a1ace1",
+  "start": "2026-04-28 00:00:00",
+  "end": "2026-05-28 00:00:00",
+  "precision": "HOURLY",
+  "counts": [
+    {
+      "time": "2026-04-28 00:00:00",
+      "push_platforms": {
+        "ios": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "android": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "amazon": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "sms": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "email": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "all": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        }
+      },
+      "rich_push_platforms": {
+        "all": {
+          "sends": 0,
+          "responses": 0
+        }
+      }
+    },
+    {
+      "time": "2026-04-28 01:00:00",
+      "push_platforms": {
+        "ios": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "android": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "amazon": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "sms": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "email": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "all": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        }
+      },
+      "rich_push_platforms": {
+        "all": {
+          "sends": 0,
+          "responses": 0
+        }
+      }
+    },
+    {
+      "time": "2026-04-28 02:00:00",
+      "push_platforms": {
+        "ios": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "android": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "amazon": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "sms": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "email": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        },
+        "all": {
+          "sends": 0,
+          "direct_responses": 0,
+          "influenced_responses": 0
+        }
+      },
+      "rich_push_platforms": {
+        "all": {
+          "sends": 0,
+          "responses": 0
+        }
+      }
+    }
+  ],
+  "_note": "Trimmed from the original 720 HOURLY buckets (30 days) to the first 3 buckets to illustrate response shape. Real responses are far larger; see SKILL.md precision rules \u2014 query at most a 7-day window for /perpush/series."
+}

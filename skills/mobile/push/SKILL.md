@@ -103,4 +103,4 @@ These tools are available if the `airship` MCP server is configured. The skill w
 
 ## Scripts
 
-- `scripts/test-push.py` - Automated push testing script
+- `scripts/validate-push-config.py` - Validate push notification configuration in a project (checks for missing AirshipConfig.plist/airshipconfig.properties, required keys, and bundle ID / package name issues)

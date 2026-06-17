@@ -294,7 +294,7 @@ Accept: application/vnd.urbanairship+json; version=3
 ## Workflows Using This Skill
 
 - **Custom Event Automation Discovery**: List pipelines triggered by Custom Events and generate sample events
-  - See [Workflow Guide](../../../workflows/custom-event-automation-discovery/SKILL.md)
+  - See [Workflow Guide](../../workflows/custom-event-automation-discovery/SKILL.md)
 
 ## Related Documentation
 

@@ -149,9 +149,9 @@ Invalid or missing authentication credentials.
 ## Workflows Using This Skill
 
 - **Register and Associate Email**: Lookup is optional - the registration endpoint handles both new and existing channels automatically. Use lookup only if you need to check channel existence without modifying it.
-  - See [Workflow Guide](../../docs/workflows.md#register-associate-email)
+  - See [Workflow Guide](../../workflows/register-associate-email/SKILL.md)
 - **Replace Email Address**: Lookup current email channel to get channel_id before replacing with new address.
-  - See [Workflow Guide](../../docs/workflows.md#replace-email-address)
+  - See [Workflow Guide](../../workflows/replace-email-address/SKILL.md)
 
 ## Related Skills
 

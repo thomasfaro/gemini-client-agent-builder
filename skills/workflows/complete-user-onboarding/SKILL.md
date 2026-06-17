@@ -66,8 +66,7 @@ Content-Type: application/json
 
 {
   "named_user_id": "user_12345",
-  "channel_id": "<email_channel_id>",
-  "channel_type": "email"
+  "email_address": "user@example.com"
 }
 ```
 
@@ -81,9 +80,7 @@ Content-Type: application/json
 {
   "named_user_id": "user_12345",
   "channel_id": "<sms_channel_id>",
-  "channel_type": "sms",
-  "msisdn": "15035556789",
-  "sender": "12345"
+  "device_type": "sms"
 }
 ```
 

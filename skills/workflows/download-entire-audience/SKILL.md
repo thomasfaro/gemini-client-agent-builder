@@ -132,7 +132,7 @@ Some hex digits may have no channels. If a thread's first request returns no cha
 Thread f handles channels starting with 'f'. Since 'f' is the last hex digit, this thread continues until there are no more pages (`next_page` is null or empty).
 
 ### Boundary Channels
-When a thread encounters a channel starting with the next hex digit, that channel should be included in the current thread's results (it's the boundary marker), but the thread should stop after processing it.
+When a thread encounters a channel starting with the next hex digit, it should stop without including that channel. The next thread starts at that prefix and will retrieve it, so including it here would create a duplicate.
 
 ## Step 5: Combine Results
 
@@ -170,8 +170,7 @@ def paginate_thread(hex_digit, next_hex_digit):
             
             # Check if we've reached the next thread's boundary
             if channel_id_first_char == next_hex_digit:
-                # Include this boundary channel, then stop
-                all_channels.append(channel)
+                # This channel belongs to the next thread; stop without including it
                 return all_channels
             
             # Check if channel belongs to this thread

@@ -139,7 +139,7 @@ Accept: application/vnd.urbanairship+json; version=3
 
 ## Workflows Using This Skill
 
-- **[Download Entire Audience](../../../workflows/download-entire-audience/SKILL.md)** - Parallel pagination across UUID prefixes
+- **[Download Entire Audience](../../workflows/download-entire-audience/SKILL.md)** - Parallel pagination across UUID prefixes
 
 ## Related Skills
 

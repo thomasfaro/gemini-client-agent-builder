@@ -129,6 +129,18 @@ view:
 
 ## Use Case Templates
 
+### Custom View (iOS)
+
+See `assets/templates/ios-custom-view.swift` for a complete custom view registration example.
+
+### Custom View (Android)
+
+See `assets/templates/android-custom-view.kt` for a complete custom view registration example (Compose).
+
+### Thomas Scene
+
+See `assets/templates/thomas-scene.yaml` for a scene definition that references a `custom_view`.
+
 ### Message Center (iOS)
 
 See `assets/templates/ios-message-center.swift` for:
@@ -142,30 +154,6 @@ See `assets/templates/android-message-center.kt` for:
 - `OnShowMessageCenterListener` implementation
 - Custom message center activity
 - Integration instructions
-
-### Preference Center (iOS)
-
-See `assets/templates/ios-preference-center.swift` for:
-- `PreferenceCenterTheme` configuration
-- `PreferenceCenterViewDelegate` for full custom UI
-
-### Preference Center (Android)
-
-See `assets/templates/android-preference-center.kt` for:
-- Theme overrides in styles.xml
-- `OnShowPreferenceCenterListener` for full custom UI
-
-### In-App Messages (iOS)
-
-See `assets/templates/ios-in-app.swift` for:
-- `BannerTheme` and `ModalTheme` configuration
-- `InAppMessageDisplayDelegate` for full custom display
-
-### In-App Messages (Android)
-
-See `assets/templates/android-in-app.kt` for:
-- Theme overrides in styles.xml
-- Custom `DisplayAdapter` implementation
 
 ## Cross-Platform Notes
 

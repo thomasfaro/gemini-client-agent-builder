@@ -19,9 +19,9 @@ This workflow registers an SMS phone number and associates it with a named user.
 - [SMS Registration](../../../skills/api/sms-registration/SKILL.md)
 - [Named Users](../../../skills/api/named-users/SKILL.md)
 
-## Step 1: Lookup SMS Channel
+## Step 1 (Optional): Lookup SMS Channel
 
-Check if the SMS number is already registered:
+Registration in Step 2 handles both new and existing channels, so this lookup is optional. Use it only if you want to inspect a channel without modifying it:
 
 ```json
 GET /api/channels/sms/15035556789/12345
@@ -89,9 +89,7 @@ Content-Type: application/json
 {
   "named_user_id": "user_12345",
   "channel_id": "df6a6b50-9843-0304-d5a5-743f246a4946",
-  "channel_type": "sms",
-  "msisdn": "15035556789",
-  "sender": "12345"
+  "device_type": "sms"
 }
 ```
 

@@ -96,6 +96,12 @@ AIRSHIP_APP_KEY=your_key AIRSHIP_CLIENT_ID=your_client_id AIRSHIP_CLIENT_SECRET=
 
 > **Note:** If you are adding the MCP server to your configuration for the first time, a full restart of your CLI/assistant is recommended to ensure the new settings are detected. While `/mcp reload` restarts existing servers, it may not always discover newly created configuration files.
 
+### Updating your credentials
+
+To change your App Key or OAuth credentials later (after rotating a secret or creating a new credential), edit the same `env` block in your MCP config file (see the locations table above) and **fully restart your assistant** so the cached OAuth token is reissued.
+
+If you are only **adding a missing scope** to an existing credential — for example, enabling **Reports** for the reports skills — you do not need to change the App Key, Client ID, or Client Secret. Enable the scope in the dashboard (**Settings → OAuth →** edit the credential), then restart your assistant to refresh the cached token. A `401 "Missing required scope"` response from an `/api/...` call is the signal that the credential is missing a scope the skill needs.
+
 ---
 
 ## Install Individual Skills

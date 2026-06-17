@@ -2,6 +2,16 @@
 
 [All Releases](https://github.com/urbanairship/agent-tools/releases)
 
+## Version 1.2.0 - June 17, 2026
+Minor release that adds reporting skills and workflow skills for push performance analysis, and improves documentation.
+
+### Changes
+- Added the `reports` skill with support for activity reports, per-push statistics, device opt-in/opt-out data, sends data, and experiment overviews.
+- Added `app-activity-summary` and `push-performance-analysis` workflow skills for end-to-end push performance analysis.
+- Fixed broken cross-skill links, stale script references, and step labeling errors across several skills.
+- Updated OAuth scope documentation in `AUTHENTICATION.md` and the README.
+- Added community marketplace installation instructions to the README.
+
 ## Version 1.1.1 - May 26, 2026
 Plugin loader fix and release-tooling cleanup. No MCP server behavior changes.
 

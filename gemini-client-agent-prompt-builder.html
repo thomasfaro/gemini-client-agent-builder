@@ -1155,7 +1155,7 @@ Never report "no Jira escalations" unless you (1) completed the **Zendesk→Jira
 Apply this hierarchy whenever time, effort, or tool budget is limited:
 1. **Accuracy & grounding first** — never assert anything a connector did not return; cite every claim and complete the source index.
 2. **Alerts before everything else** — surface escalations and risks at the top of the answer (see *Alert detection & severity*), even on narrow questions.
-3. **Match effort to the request** — run the full connector sweep for profiles and scheduled briefs; target only the relevant connectors for ad-hoc questions (see SOP B and *Mandatory connector sweep*).
+3. **Match effort to the request** — run the full connector sweep for profiles and scheduled briefs; target only the relevant connectors for ad-hoc questions (see SOP B and the Orchestration & dispatch protocol).
 4. **Completeness last** — once the above are satisfied, broaden coverage; do not over-query when the question is already answered.`;
     }
 
@@ -1179,25 +1179,27 @@ Raising alerts is a primary function — be proactive, not just descriptive.
       return clientName ? `My Drive → ${clientName}` : "My Drive → [CLIENT_ACCOUNT_FOLDER]";
     }
 
-    function buildDriveMandatoryTranscriptQueries(clientName, keywords) {
+    function buildDriveMandatoryTranscriptQueries(clientName, keywords, clientLanguages, tier = "core") {
       const name = clientName || "[CLIENT_NAME]";
       // Plain, unquoted keyword combinations ("parallel fan-out"). Google Drive
       // search treats strict quotes and folder:"..." as exact title/body matches,
       // NOT as a parent-folder filter — so a note titled "M6 - Point hebdo" inside
       // the Meet Recordings folder is missed by folder:"Meet Recordings". Use
-      // natural multi-term queries instead.
-      const terms = [
-        "Meet Recordings",
-        "transcript",
-        "notes de réunion",
-        "compte rendu",
-        "meeting notes",
-        "Notes par Gemini",
-        "Notes by Gemini",
-        "point hebdo",
-        "point bi-hebdo",
-        ...keywords,
-      ];
+      // natural multi-term queries instead. Terms are language-filtered and
+      // tiered: "core" keeps a tight fan-out (neutral + the primary term of each
+      // active language) for daily/ad-hoc runs; "extended" adds broader
+      // nomenclature variants for full-profile / weekly recall.
+      const langs = clientLanguages || [];
+      const frActive = langs.length === 0 || langs.includes("fr");
+      const enActive = langs.length === 0 || langs.includes("en");
+      const terms = ["Meet Recordings", "transcript"];
+      if (frActive) terms.push("compte rendu");
+      if (enActive) terms.push("meeting notes");
+      terms.push(...keywords);
+      if (tier === "extended") {
+        if (frActive) terms.push("notes de réunion", "point hebdo", "point bi-hebdo", "Notes par Gemini");
+        if (enActive) terms.push("Notes by Gemini");
+      }
       const seen = new Set();
       const lines = [];
       for (const t of terms) {
@@ -1251,11 +1253,12 @@ On **every full client profile**, **daily brief**, **weekly digest**, and **emai
     }
 
     function buildDriveScanPathsBlock(data) {
-      const { clientName, keywords, emailDomains } = data;
+      const { clientName, keywords, emailDomains, clientLanguages } = data;
       const keywordsLabel = formatList(keywords);
       const domainsLabel = formatList(emailDomains);
       const clientFolderPath = defaultClientDriveFolderPath(clientName);
-      const mandatoryQueries = buildDriveMandatoryTranscriptQueries(clientName, keywords);
+      const coreQueries = buildDriveMandatoryTranscriptQueries(clientName, keywords, clientLanguages, "core");
+      const extendedQueries = buildDriveMandatoryTranscriptQueries(clientName, keywords, clientLanguages, "extended");
 
       return `**Google Drive — meeting notes & documents to scan**
 Use the **Google Drive** connector to **search across ALL of Drive** (My Drive, shared drives, and shared-with-me) — **not** a single folder. On every summary, status check, or full profile run, run the search queries below; do not rely on Agent Knowledge or filename guessing alone.
@@ -1269,8 +1272,14 @@ Google Drive search treats \`"…"\` (strict quotes) and \`folder:"…"\` as a r
 Gemini meeting notes and human-written reports can be **anywhere**: the default \`Meet Recordings\` folder, a client folder (e.g. \`${clientFolderPath}\`), a shared "Customer Success" drive, or the root of a colleague's Drive. Rely on the keyword fan-out below, not on folder location.
 
 ### 1. Mandatory notes search — parallel keyword fan-out (ALWAYS, independent of Calendar)
-**Run these exact queries on every full summary, regardless of Calendar results, across ALL of Drive.** Notes search is **NOT** conditional on a calendar event. Run **one query per line** (parallel fan-out); never stop after a single empty search.
-${mandatoryQueries}
+**Run these exact queries regardless of Calendar results, across ALL of Drive.** Notes search is **NOT** conditional on a calendar event. Run **one query per line** (parallel fan-out); never stop after a single empty search.
+
+**Core notes search — run on EVERY summary, status check, or profile run** (parallel keyword fan-out, all of Drive, independent of Calendar):
+${coreQueries}
+
+**Extended notes search — ADD these on full profile and weekly digest runs only** (broader nomenclature variants for maximum recall):
+${extendedQueries}
+*   (Includes the core queries above plus broader variants — daily/ad-hoc runs use only the core set; full profile / weekly runs use this full extended set.)
 *   These plain queries match semantically — whether the match is the auto-generated Meet title, the folder name, the document title, or the transcript body.
 
 ### 2. Calendar funnel (additional pass — not a prerequisite)
@@ -1285,10 +1294,10 @@ After the mandatory search above, query **Google Calendar** for meetings in the 
 *   **Do not** rely on search-result snippets, previews, or metadata before writing the summary.
 
 ### 5. Time window
-*   Prefer files modified in the resolved lookback window. For full profile summaries expand to **90 days**; for ad-hoc, expand to the user-specified range when asking about a past meeting or decision — still using the plain keyword fan-out above (no strict quotes).
+*   Prefer files modified in the resolved lookback window. **On full-profile / topic-specific ad-hoc runs only,** expand to **90 days** (or the user-specified range when asking about a past meeting or decision) — still using the plain keyword fan-out above (no strict quotes). Daily/weekly briefs stay within the resolved short window and skip the 90-day expansion unless a specific thread requires it.
 
 ### Broader account documents
-*   Also search **all of Drive** (My Drive, shared drives, shared-with-me) for \`${clientName}\`, keywords [\`${keywordsLabel}\`], and domains [\`${domainsLabel}\`] to find SOWs, QBR decks, contracts, and project plans — **plain multi-term** full-text queries (no strict quotes), not filename or single-folder guessing.
+*   **On full profile runs (or when the user asks about a specific document/contract):** also search **all of Drive** (My Drive, shared drives, shared-with-me) for \`${clientName}\`, keywords [\`${keywordsLabel}\`], and domains [\`${domainsLabel}\`] to find SOWs, QBR decks, contracts, and project plans — **plain multi-term** full-text queries (no strict quotes), not filename or single-folder guessing. Daily/weekly briefs skip this broad SOW/QBR/contract scan unless a specific thread requires it.
 
 ### Failure mode (do not skip silently)
 *   Never report "no meeting notes" unless you (1) ran **all** queries in the **Mandatory notes search** (§1) **across all of Drive** (not just \`Meet Recordings\`), (2) ran the **Calendar funnel** searches and attachment checks for each event found (§2), and (3) opened and extracted full text for every candidate note (§4).
@@ -1682,8 +1691,9 @@ Choosing only the subagents a request actually needs is the **primary lever for 
 4.  Hand off to \`${REPORT_WRITER_AGENT}\`; **scheduled runs only:** then delegate to \`${EMAIL_DELIVERY_AGENT}\`.
 
 ### Hybrid routing (match effort to the request)
-*   **Narrow ad-hoc question:** dispatch ONLY the relevant research subagent(s), then either answer inline or pass to \`${REPORT_WRITER_AGENT}\` for a short formatted answer. Use a compact source index.
-*   **Alert fast-path** ("any risks?", "anything urgent?"): dispatch \`research_support_eng\` + \`research_comms\` in **alerts-only** mode (add \`research_commercial\` only if a renewal/commercial risk is plausible); return the 🚨 Alerts section + a compact source index. Trivial questions may be answered directly.
+*   **\`${REPORT_WRITER_AGENT}\` is reserved for full briefs** — full client profile, daily, and weekly digests. For everything below, **the orchestrator formats and returns the answer itself** (no writer hand-off) to save a round-trip, unless the user explicitly asks for a formatted brief.
+*   **Narrow ad-hoc question:** dispatch ONLY the relevant research subagent(s), consolidate, and **answer inline directly** with a compact source index. Hand off to \`${REPORT_WRITER_AGENT}\` only if the user explicitly requested a formatted brief.
+*   **Alert fast-path** ("any risks?", "anything urgent?"): dispatch \`research_support_eng\` + \`research_comms\` in **alerts-only** mode (add \`research_commercial\` only if a renewal/commercial risk is plausible); **return the 🚨 Alerts section + a compact source index directly** — no writer hand-off. Trivial questions may be answered directly.
 *   Prefer parallel dispatch; never serialize unless one subagent's output is a required input to another. Never dispatch a subagent whose domain is irrelevant to the request just because a template lists it.`;
     }
 
@@ -1721,62 +1731,11 @@ Resolve the time window **before** querying connectors. State the window used at
 | Full profile summary | **90 days** for activity sections; no time limit for structural overview sections |
 | Ad-hoc chat (any other question) | **Infer from the user's request** — explicit dates, relative periods ("last week", "since Monday"), or implicit scope ("last meeting", "open tickets", "recent emails"). If critically ambiguous, ask one clarifying question or state the assumption you applied. |
 
-**Drive meeting-notes exception:** For meeting notes, past decisions, or keyword/topic lookups, run the **Mandatory notes search across ALL of Drive** (plain unquoted keyword fan-out by nomenclature + client name — **no strict quotes / no \`folder:\`** — **not** limited to \`Meet Recordings\`, **independent of Calendar**) and extract full content even when file dates fall outside the resolved window (see Drive protocol).
+**Drive meeting-notes exception:** For meeting notes, past decisions, or keyword/topic lookups, run the **Mandatory notes search across ALL of Drive** (plain unquoted keyword fan-out by nomenclature + client name — **no strict quotes / no \`folder:\`** — **not** limited to \`Meet Recordings\`, **independent of Calendar**) and extract full content even when file dates fall outside the resolved window (handled by the \`research_meetings_docs\` Drive protocol).
 
 **Translate to absolute dates (mandatory):** Once resolved, express the window as **absolute calendar dates** (e.g. \`since 2026-01-01\` / \`2026-05-01 → 2026-05-31\`) and use those as the date filters when querying — do not rely on vague relative terms inside connector search boxes. This filters out historical noise (e.g. 2023–2024 documents) and keeps results in-window.
 
 Apply date/time filters on **Gmail, Calendar, Zendesk, Jira, and Drive** consistent with the resolved window.`;
-    }
-
-    function buildSearchStrategyBlock(data) {
-      const clientName = data.clientName || "[CLIENT_NAME]";
-      return `**Search strategy — how to query every connector**
-Apply these rules to **all** connector queries (Gmail, Calendar, Drive, Slack, Zendesk, Jira, Google Search).
-
-### Simple keywords + parallel fan-out (mandatory)
-*   **Never** type full sentences or questions into a connector search box — e.g. ❌ \`what are ${clientName}'s bugs in 2026\`. Search tools tokenize prose poorly and return weak results.
-*   Use **short keyword combinations** only — e.g. ✅ \`${clientName} bug\`, \`${clientName} incident\`, \`${clientName} crash\`.
-*   Always run **several queries in parallel** (parallel fan-out) and merge the results — **one term per query**, never stop after a single empty search.
-
-### Translate the lookback window to absolute dates (mandatory)
-*   Before searching, convert the resolved lookback window into **absolute calendar dates** (e.g. \`since 2026-01-01\`) and apply them as date filters on Gmail, Slack, Zendesk, Jira, Calendar, and Drive. This removes historical noise (old 2023–2024 items) — see *Lookback window resolution*.
-*   **Verify dates after retrieving (post-filter, mandatory):** search tools — **especially Jira**, also Drive, Gmail, and Zendesk — may ignore the date filter and surface old items. After each query, **re-read the created/last-updated date of every result and exclude anything whose latest activity is before the window**. Never include a ticket/document/email solely because it matched a keyword or a type/escalation filter — confirm the date first. *Exception:* explicit historical or Drive meeting-notes/decision lookups may intentionally keep older items (see Drive protocol).
-
-### Source specialization (target the right connector per section)
-Do not scan everything for everything — go where the answer lives:
-*   **Support health** → **Zendesk** (org-scoped tickets).
-*   **Engineering & product** → **Jira** (PF / escalation-class — see Jira protocol).
-*   **Commercial / CRM** (pipeline, renewal, ARR, account health) → **Salesforce** (scoped to the Account ID).
-*   **Meetings & calls** → **Drive** (notes fan-out) + **Calendar** (events & attachments).
-*   **Communications** → **Gmail** + **Slack**.
-*   **External / public news** → **Google Search**.
-*   Use cross-source links (e.g. **Zendesk → Jira bridge**) only for **correlation**, not to re-scan unrelated sources.
-
-### Noise filtering (focus on humans & critical alerts)
-*   In **Gmail and Slack**, **ignore automated/system notifications** — Jira bots, generic Zendesk update emails, CI/monitoring digests, no-reply/marketing senders. Concentrate on **human conversations** and **critical alerts**.
-*   Treat an automated message as relevant **only** when it carries a client-specific escalation or risk signal.`;
-    }
-
-    function buildConnectorSweepProtocol(data) {
-      const clientName = data.clientName || "[CLIENT_NAME]";
-      const connectorList = (data.connectors || ALL_CONNECTORS)
-        .map((c) => CONNECTOR_LABELS[c])
-        .join(", ");
-      return `**Mandatory connector sweep (full summaries)**
-Applies to **daily brief**, **weekly digest**, **full profile summary**, and any request phrased as "summary", "update", "digest", "status", or "what's new".
-
-1. **Query every connected source** before writing: ${connectorList}. Never skip a connector because a prior run returned nothing.
-2. **Run at least one scoped query per connector** using the client parameters (Zendesk org ID, domains, keywords, Slack channel, account team).
-3. **Parallelize** when the platform allows; otherwise follow the numbered order in Core Directives.
-4. **Meeting notes (Drive):** **Always** run the **Mandatory notes search across ALL of Drive** — **plain unquoted keyword fan-out** combining client name + terms (\`Meet Recordings\`, \`transcript\`, \`notes de réunion\`, \`compte rendu\`, \`meeting notes\`, \`point hebdo\`). **No strict quotes, no \`folder:\` operator** (Drive matches those as exact title/body text, not as a folder). **Not** limited to the \`Meet Recordings\` folder, **independent of Calendar** — never conditional on a calendar hit. Then add a **Calendar-funnel** pass (exact event title + date + attachments) for each meeting found — see *Google Drive — meeting notes & documents*.
-5. **Record every connector** in the source index — use \`No data\` when empty, \`Unavailable\` when the tool fails (with reason).
-6. **Second-pass correlation:** Link the same topic across sources (Gmail ↔ Slack), and apply the **Zendesk → Jira bridge** — see *Jira Cloud — investigation protocol*.
-7. **Google Search:** **Mandatory** for full profile and weekly digest; **include in daily briefs** for client news in the window. Query \`${clientName}\` + keywords for public news (see Account intelligence §5). Mark \`Skipped\` only for narrow ad-hoc questions with no external-news angle.
-
-**Scale the sweep to the run type:**
-*   **Full profile / weekly digest:** all connectors, full protocols, broadest lookback.
-*   **Daily brief:** all connectors, scoped to the ~24h window; skip deep 90-day expansions unless a thread requires it.
-*   **Ad-hoc narrow question** (SOP section B): only the connectors needed to answer, plus alert-relevant ones; cite sources and use a compact source index listing only queried connectors.`;
     }
 
     function buildSourceIndexBlock() {
@@ -1811,14 +1770,6 @@ For **narrow ad-hoc questions** and the **alert fast-path**, replace the full ta
       if (!gaps.length) return "";
       return `**Configuration gaps (fill in Agent Designer / form when possible)**
 ${gaps.map((g) => `*   ⚠️ ${g}`).join("\n")}`;
-    }
-
-    function buildConnectorSection(connectors, strategies) {
-      const lines = [];
-      for (const key of connectors) {
-        if (strategies[key]) lines.push(strategies[key]);
-      }
-      return lines.join("\n");
     }
 
     function buildPrompt(data) {
@@ -1908,7 +1859,7 @@ ${gaps.map((g) => `*   ⚠️ ${g}`).join("\n")}`;
         clientName,
         keywords,
         strategies: connectorStrategies,
-        driveData: { clientName, keywords, emailDomains },
+        driveData: { clientName, keywords, emailDomains, clientLanguages },
         jiraData: { clientName, keywords, zendeskOrgId },
       };
       const researchSubagentBlocks = researchSubagents

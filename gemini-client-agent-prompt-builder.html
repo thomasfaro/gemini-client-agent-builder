@@ -1651,25 +1651,36 @@ Parallel, source-specialized research is more **exhaustive and structured**; a d
         .map((sa) => `*   \`${sa.node}\` → ${subagentConnectorLabels(sa.connectors)}`)
         .join("\n");
       return `**Orchestration & dispatch protocol**
-You are the **orchestrator**. On full runs you do **not** query connectors yourself — you delegate to research subagents, consolidate their packets, hand off to \`${REPORT_WRITER_AGENT}\`, and (on scheduled runs) to \`${EMAIL_DELIVERY_AGENT}\`. *(This dispatch IS the "Mandatory connector sweep" referenced throughout these instructions.)*
+You are the **orchestrator**. On full runs you do **not** query connectors yourself — you delegate to research subagents, consolidate their packets, hand off to \`${REPORT_WRITER_AGENT}\`, and (on scheduled runs) to \`${EMAIL_DELIVERY_AGENT}\`. *(This dispatch IS the "Mandatory connector sweep" referenced throughout these instructions — the sweep means the **relevant** subagents, not always every one.)*
 
 ### Delegation map
 ${list}
 *   \`${REPORT_WRITER_AGENT}\` → synthesis & final formatting (no connectors)
 *   \`${EMAIL_DELIVERY_AGENT}\` → email send (scheduled runs only)
 
-### Full summaries (profile / daily / weekly / "summary | update | digest | status | what's new")
+### Dispatch selection (latency — pick the minimum sufficient set)
+Choosing only the subagents a request actually needs is the **primary lever for response time** — do **not** fan out to every subagent by default.
+*   \`research_commercial\` (Salesforce/CRM) is **dispatched only** for (a) a **full client profile** request, or (b) a request **explicitly about commercial topics** (renewal, ARR, contract, pipeline, upsell, churn / account health) or a **renewal-risk alert**. **Skip it** on daily/weekly operational briefs and on support / engineering / communications / meetings questions.
+*   \`research_web\` (Google Search) is dispatched only when **external/public news** is in scope (full profile, weekly digest, or a news-oriented question) — skip it for purely internal questions.
+*   Always dispatch the subagent(s) that own the request's core domain; skip clearly unrelated ones. Run the selected set **in parallel**.
+
+### Full client profile ("complete profile" / general "everything" request)
 1.  **Resolve the lookback window** to **absolute dates** (see Lookback window resolution).
-2.  **Dispatch ALL research subagents in parallel**, passing each: the client parameters it needs, the absolute-date window, and the run focus. Never skip a subagent because a prior run returned nothing.
-3.  **Collect every packet.** Assemble the unified **source index** from the per-connector rows; if a subagent is unavailable, record it and continue.
-4.  **Consolidate alerts:** merge candidate alerts, assign exactly **one** final severity each (see Alert detection & severity), and deduplicate against the previous run of the same schedule.
-5.  **Hand off to \`${REPORT_WRITER_AGENT}\`** with all packets + consolidated alerts + assembled source index + resolved window. It returns the formatted brief.
-6.  **Scheduled runs only:** after the brief is complete, delegate to \`${EMAIL_DELIVERY_AGENT}\`.
+2.  **Dispatch ALL research subagents in parallel** (including \`research_commercial\` and \`research_web\`), passing each: the client parameters it needs, the absolute-date window, and the run focus. Never skip one here because a prior run returned nothing.
+3.  **Collect every packet.** Assemble the unified **source index**; if a subagent is unavailable, record it and continue.
+4.  **Consolidate alerts:** merge candidates, assign exactly **one** final severity each (see Alert detection & severity), dedupe vs. the previous run of the same schedule.
+5.  **Hand off to \`${REPORT_WRITER_AGENT}\`** with all packets + consolidated alerts + assembled source index + resolved window.
+
+### Daily / weekly operational brief ("summary | update | digest | status | what's new")
+1.  **Resolve the lookback window** to absolute dates.
+2.  **Dispatch the operational set in parallel:** \`research_comms\`, \`research_meetings_docs\`, \`research_support_eng\`, and \`research_web\` (news). **Add \`research_commercial\` only** if the window contains a commercial signal (renewal approaching, pricing/contract thread, pipeline movement) or the user explicitly asked for it.
+3.  Collect packets, assemble the source index, consolidate alerts.
+4.  Hand off to \`${REPORT_WRITER_AGENT}\`; **scheduled runs only:** then delegate to \`${EMAIL_DELIVERY_AGENT}\`.
 
 ### Hybrid routing (match effort to the request)
 *   **Narrow ad-hoc question:** dispatch ONLY the relevant research subagent(s), then either answer inline or pass to \`${REPORT_WRITER_AGENT}\` for a short formatted answer. Use a compact source index.
-*   **Alert fast-path** ("any risks?", "anything urgent?"): dispatch \`research_support_eng\` + \`research_comms\` (+ \`research_commercial\` for renewal risk) in **alerts-only** mode; return the 🚨 Alerts section + a compact source index. Trivial questions may be answered directly.
-*   Prefer parallel dispatch; never serialize unless one subagent's output is a required input to another.`;
+*   **Alert fast-path** ("any risks?", "anything urgent?"): dispatch \`research_support_eng\` + \`research_comms\` in **alerts-only** mode (add \`research_commercial\` only if a renewal/commercial risk is plausible); return the 🚨 Alerts section + a compact source index. Trivial questions may be answered directly.
+*   Prefer parallel dispatch; never serialize unless one subagent's output is a required input to another. Never dispatch a subagent whose domain is irrelevant to the request just because a template lists it.`;
     }
 
     function formatEscalationRulesBlock(escalationRules, outputLanguage) {

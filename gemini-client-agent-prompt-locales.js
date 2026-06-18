@@ -71,7 +71,7 @@ Negative sentiment or churn signals in Slack`,
           },
           {
             text: `Weekly email brief for ${clientName}`,
-            behavior: `Weekly intelligence digest, then delegate to the \`${EMAIL_AGENT}\` sub-agent to email the planner (Zendesk/Jira priority filters in the body).`,
+            behavior: `Concise weekly email digest (Alerts, Snapshot, Communications, Support, optional Commercial/Meetings, Watch list, source index — no Engineering/product, Account intelligence, or Risks & blockers), then delegate to the \`${EMAIL_AGENT}\` sub-agent to email the planner.`,
           },
           {
             text: `Ongoing topics for ${clientName}`,
@@ -85,15 +85,15 @@ Negative sentiment or churn signals in Slack`,
       },
       scheduledDaily(ctx) {
         const { clientName } = ctx;
-        return `Generate the daily intelligence brief for ${clientName}. First resolve the lookback window (~24 hours since your previous daily scheduled run), then execute the **Mandatory connector sweep** — query every connected source before writing. Cover only activity in that window. Include **Account intelligence** subsections (Airship products, campaigns, client stakeholders, client tools, public news) for any **new or changed** signals; run **Google Search** for client news in the window. Do not repeat unchanged items from the last brief unless there is a material update. Apply escalation rules, Efficiency & Optimization Rules (Zendesk/Jira email priority filters), and the full structured output template. End with the mandatory source index table.`;
+        return `Generate a **concise** daily email brief for ${clientName}. First resolve the lookback window (~24 hours since your previous daily scheduled run), then execute the **Mandatory connector sweep** — query every connected source before writing. Cover only activity in that window; do not repeat unchanged items from the last brief unless there is a material update. Keep it short and scannable — include only: **🚨 Alerts** (lead), a 2–3 sentence **Snapshot**, **Recent communications** (fold in any engineering/product updates), **Support** (Zendesk: urgent/high/escalated only), optional **Commercial** (only on a material change) and **Meetings** (only if any in window), then the **source index**. **Do NOT include** an Engineering & product (Jira) section, Account intelligence, or a Risks & blockers section. Apply escalation rules and the Efficiency & Optimization Rules. Then delegate to the \`${EMAIL_AGENT}\` sub-agent to send.`;
       },
       scheduledWeekly(ctx) {
         const { clientName } = ctx;
-        return `Generate the weekly intelligence digest for ${clientName}. First resolve the lookback window (~7 days since your previous weekly scheduled run), then execute the **Mandatory connector sweep** — query every connected source before writing. Include trend analysis, recurring themes, and a watch list for the coming week. Include all five **Account intelligence** dimensions (Airship products, marketing campaigns, client stakeholders, client tools, public news) — **Google Search is mandatory**. Do not repeat unchanged items from the last digest unless there is a material update. Apply escalation rules, Efficiency & Optimization Rules (Zendesk/Jira email priority filters), and the full structured output template. End with the mandatory source index table.`;
+        return `Generate a **concise** weekly email digest for ${clientName}. First resolve the lookback window (~7 days since your previous weekly scheduled run), then execute the **Mandatory connector sweep** — query every connected source before writing. Use the same concise structure as the daily email (**🚨 Alerts**, **Snapshot**, **Recent communications**, **Support**, optional **Commercial**/**Meetings**, **source index**) and add a short **Watch list** (2–3 bullets) plus brief recurring-theme notes for the week. **Do NOT include** an Engineering & product (Jira) section, an Account-intelligence refresh, or a Risks & blockers section. Do not repeat unchanged items from the last digest unless there is a material update. Apply escalation rules and the Efficiency & Optimization Rules. Then delegate to the \`${EMAIL_AGENT}\` sub-agent to send.`;
       },
       emailDeliveryInstruction(ctx) {
         const { clientName, email } = ctx;
-        return `"Send this brief by email to ${email} only. Apply Zendesk/Jira priority filters for email (Zendesk: urgent/high/escalated; Jira: ${JIRA_PF} + summary starting with ${JIRA_ESC} only — see Efficiency rules). Subject: 📋 ${clientName} — [Daily Intelligence Brief | Weekly Intelligence Digest] — [DATE]."`;
+        return `"Send this brief by email to ${email} only, formatted with the **concise email template** — Alerts, Snapshot, Recent communications, Support (Zendesk urgent/high/escalated; Jira ${JIRA_PF} + ${JIRA_ESC} only), optional Commercial/Meetings, source index. **Exclude** Engineering & product, Account intelligence, and Risks & blockers (redundant). Keep every source a clickable link and the email scannable. Subject: 📋 ${clientName} — [Daily Intelligence Brief | Weekly Intelligence Digest] — [DATE]."`;
       },
       emailSubjectDaily: "Daily Intelligence Brief",
       emailSubjectWeekly: "Weekly Intelligence Digest",
@@ -295,7 +295,7 @@ Sentiment négatif ou signaux de churn dans Slack`,
           },
           {
             text: `Brief hebdo par email pour ${clientName}`,
-            behavior: `Digest hebdomadaire, puis délègue au sous-agent \`${EMAIL_AGENT}\` pour l'envoi au planner (filtres prioritaires Zendesk/Jira dans le corps).`,
+            behavior: `Digest hebdomadaire concis par email (Alertes, Synthèse, Communications, Support, Commercial/Réunions optionnels, Watch list, index des sources — sans Ingénierie/produit, Account intelligence ni Risques & blocages), puis délègue au sous-agent \`${EMAIL_AGENT}\` pour l'envoi au planner.`,
           },
           {
             text: `Sujets en cours pour ${clientName}`,
@@ -309,15 +309,15 @@ Sentiment négatif ou signaux de churn dans Slack`,
       },
       scheduledDaily(ctx) {
         const { clientName } = ctx;
-        return `Génère le brief d'intelligence quotidien pour ${clientName}. Résous d'abord la fenêtre de lookback (~24 h depuis la dernière exécution quotidienne planifiée), puis exécute le **balayage obligatoire des connecteurs** — interroge chaque source connectée avant d'écrire. Couvre uniquement l'activité de cette fenêtre. Inclus les sous-sections **Account intelligence** (produits Airship, campagnes, interlocuteurs client, outils, actu publique) pour tout signal **nouveau ou modifié** ; lance **Google Search** pour l'actu client dans la fenêtre. Ne répète pas les éléments inchangés du dernier brief sauf mise à jour matérielle. Applique les règles d'escalade, les règles d'efficacité (filtres Zendesk/Jira pour l'email) et le modèle de sortie structuré. Termine par le tableau d'index des sources obligatoire.`;
+        return `Génère un brief email quotidien **concis** pour ${clientName}. Résous d'abord la fenêtre de lookback (~24 h depuis la dernière exécution quotidienne planifiée), puis exécute le **balayage obligatoire des connecteurs** — interroge chaque source connectée avant d'écrire. Couvre uniquement l'activité de cette fenêtre ; ne répète pas les éléments inchangés sauf mise à jour matérielle. Garde-le court et scannable — inclus seulement : **🚨 Alertes** (en tête), une **Synthèse** de 2–3 phrases, **Communications récentes** (en y intégrant les mises à jour ingénierie/produit), **Support** (Zendesk : urgent/élevé/escaladé uniquement), **Commercial** optionnel (seulement en cas de changement matériel) et **Réunions** (seulement s'il y en a dans la fenêtre), puis l'**index des sources**. **N'inclus PAS** de section Ingénierie & produit (Jira), d'Account intelligence, ni de section Risques & blocages. Applique les règles d'escalade et les règles d'efficacité. Puis délègue au sous-agent \`${EMAIL_AGENT}\` pour l'envoi.`;
       },
       scheduledWeekly(ctx) {
         const { clientName } = ctx;
-        return `Génère le digest hebdomadaire pour ${clientName}. Résous d'abord la fenêtre de lookback (~7 jours depuis la dernière exécution hebdomadaire planifiée), puis exécute le **balayage obligatoire des connecteurs** — interroge chaque source connectée avant d'écrire. Inclus l'analyse de tendances, les thèmes récurrents et une watch list pour la semaine à venir. Inclus les cinq dimensions **Account intelligence** (produits Airship, campagnes marketing, interlocuteurs client, outils, actu publique) — **Google Search obligatoire**. Ne répète pas les éléments inchangés du dernier digest sauf mise à jour matérielle. Applique les règles d'escalade, les règles d'efficacité (filtres Zendesk/Jira pour l'email) et le modèle de sortie structuré. Termine par le tableau d'index des sources obligatoire.`;
+        return `Génère un digest email hebdomadaire **concis** pour ${clientName}. Résous d'abord la fenêtre de lookback (~7 jours depuis la dernière exécution hebdomadaire planifiée), puis exécute le **balayage obligatoire des connecteurs** — interroge chaque source connectée avant d'écrire. Utilise la même structure concise que l'email quotidien (**🚨 Alertes**, **Synthèse**, **Communications récentes**, **Support**, **Commercial**/**Réunions** optionnels, **index des sources**) et ajoute une courte **Watch list** (2–3 puces) plus de brèves notes de thèmes récurrents pour la semaine. **N'inclus PAS** de section Ingénierie & produit (Jira), de rafraîchissement Account intelligence, ni de section Risques & blocages. Ne répète pas les éléments inchangés du dernier digest sauf mise à jour matérielle. Applique les règles d'escalade et les règles d'efficacité. Puis délègue au sous-agent \`${EMAIL_AGENT}\` pour l'envoi.`;
       },
       emailDeliveryInstruction(ctx) {
         const { clientName, email } = ctx;
-        return `"Envoie ce brief par email uniquement à ${email}. Applique les filtres prioritaires Zendesk/Jira pour l'email (Zendesk : urgent/élevé/escaladé ; Jira : ${JIRA_PF} + résumé commençant par ${JIRA_ESC} uniquement — voir règles d'efficacité). Objet : 📋 ${clientName} — [Brief quotidien | Digest hebdomadaire] — [DATE]."`;
+        return `"Envoie ce brief par email uniquement à ${email}, mis en forme selon le **gabarit email concis** — Alertes, Synthèse, Communications récentes, Support (Zendesk urgent/élevé/escaladé ; Jira ${JIRA_PF} + ${JIRA_ESC} uniquement), Commercial/Réunions optionnels, index des sources. **Exclus** Ingénierie & produit, Account intelligence et Risques & blocages (redondants). Garde chaque source en lien cliquable et l'email scannable. Objet : 📋 ${clientName} — [Brief quotidien | Digest hebdomadaire] — [DATE]."`;
       },
       emailSubjectDaily: "Brief quotidien",
       emailSubjectWeekly: "Digest hebdomadaire",
@@ -519,7 +519,7 @@ Negative Stimmung oder Churn-Signale in Slack`,
           },
           {
             text: `Wöchentlicher E-Mail-Brief für ${clientName}`,
-            behavior: `Wöchentlicher Digest, dann an den \`${EMAIL_AGENT}\`-Sub-Agenten delegieren, um an den Planner zu senden (Zendesk/Jira-Prioritätsfilter im Text).`,
+            behavior: `Knapper wöchentlicher E-Mail-Digest (Alerts, Snapshot, Kommunikation, Support, optional Kommerziell/Meetings, Watchlist, Quellenindex — ohne Engineering/Produkt, Account Intelligence oder Risiken & Blocker), dann an den \`${EMAIL_AGENT}\`-Sub-Agenten delegieren, um an den Planner zu senden.`,
           },
           {
             text: `Laufende Themen für ${clientName}`,
@@ -533,15 +533,15 @@ Negative Stimmung oder Churn-Signale in Slack`,
       },
       scheduledDaily(ctx) {
         const { clientName } = ctx;
-        return `Erstelle den täglichen Intelligence-Brief für ${clientName}. Löse zuerst das Lookback-Fenster (~24 Stunden seit dem letzten täglichen Lauf), führe dann den **obligatorischen Connector-Sweep** aus — frage jede verbundene Quelle ab, bevor du schreibst. Decke nur Aktivitäten in diesem Fenster ab. Füge **Account-Intelligence**-Unterabschnitte (Airship-Produkte, Kampagnen, Kunden-Ansprechpartner, Tools, öffentliche News) für **neue oder geänderte** Signale hinzu; führe **Google Search** für Kunden-News im Fenster aus. Wiederhole unveränderte Punkte aus dem letzten Brief nicht, außer bei wesentlichen Updates. Wende Eskalationsregeln, Effizienzregeln (Zendesk/Jira E-Mail-Filter) und die strukturierte Ausgabevorlage an. Beende mit der obligatorischen Quellenindex-Tabelle.`;
+        return `Erstelle einen **knappen** täglichen E-Mail-Brief für ${clientName}. Löse zuerst das Lookback-Fenster (~24 Stunden seit dem letzten täglichen Lauf), führe dann den **obligatorischen Connector-Sweep** aus — frage jede verbundene Quelle ab, bevor du schreibst. Decke nur Aktivitäten in diesem Fenster ab; wiederhole unveränderte Punkte nicht, außer bei wesentlichen Updates. Halte ihn kurz und scannbar — nur: **🚨 Alerts** (zuerst), ein **Snapshot** aus 2–3 Sätzen, **Aktuelle Kommunikation** (Engineering-/Produkt-Updates hier einfließen lassen), **Support** (Zendesk: nur urgent/hoch/eskaliert), optional **Kommerziell** (nur bei wesentlicher Änderung) und **Meetings** (nur falls im Fenster), dann der **Quellenindex**. **Füge KEINE** Engineering-&-Produkt-Sektion (Jira), keine Account Intelligence und keine Risiken-&-Blocker-Sektion hinzu. Wende Eskalations- und Effizienzregeln an. Delegiere dann an den \`${EMAIL_AGENT}\`-Sub-Agenten zum Senden.`;
       },
       scheduledWeekly(ctx) {
         const { clientName } = ctx;
-        return `Erstelle den wöchentlichen Intelligence-Digest für ${clientName}. Löse zuerst das Lookback-Fenster (~7 Tage seit dem letzten wöchentlichen Lauf), führe dann den **obligatorischen Connector-Sweep** aus — frage jede verbundene Quelle ab, bevor du schreibst. Füge Trendanalyse, wiederkehrende Themen und eine Watchlist für die kommende Woche hinzu. Beziehe alle fünf **Account-Intelligence**-Dimensionen ein (Airship-Produkte, Marketing-Kampagnen, Kunden-Ansprechpartner, Tools, öffentliche News) — **Google Search ist Pflicht**. Wiederhole unveränderte Punkte nicht. Wende Eskalationsregeln, Effizienzregeln und die Ausgabevorlage an. Beende mit der Quellenindex-Tabelle.`;
+        return `Erstelle einen **knappen** wöchentlichen E-Mail-Digest für ${clientName}. Löse zuerst das Lookback-Fenster (~7 Tage seit dem letzten wöchentlichen Lauf), führe dann den **obligatorischen Connector-Sweep** aus — frage jede verbundene Quelle ab, bevor du schreibst. Verwende dieselbe knappe Struktur wie die tägliche E-Mail (**🚨 Alerts**, **Snapshot**, **Aktuelle Kommunikation**, **Support**, optional **Kommerziell**/**Meetings**, **Quellenindex**) und ergänze eine kurze **Watchlist** (2–3 Punkte) plus knappe Notizen zu wiederkehrenden Themen der Woche. **Füge KEINE** Engineering-&-Produkt-Sektion (Jira), keinen Account-Intelligence-Refresh und keine Risiken-&-Blocker-Sektion hinzu. Wiederhole unveränderte Punkte nicht, außer bei wesentlichen Updates. Wende Eskalations- und Effizienzregeln an. Delegiere dann an den \`${EMAIL_AGENT}\`-Sub-Agenten zum Senden.`;
       },
       emailDeliveryInstruction(ctx) {
         const { clientName, email } = ctx;
-        return `"Sende diesen Brief nur an ${email}. Wende Zendesk/Jira-Prioritätsfilter für E-Mail an (Zendesk: urgent/hoch/eskaliert; Jira: nur ${JIRA_PF} + Summary beginnend mit ${JIRA_ESC} — siehe Effizienzregeln). Betreff: 📋 ${clientName} — [Täglicher Brief | Wöchentlicher Digest] — [DATUM]."`;
+        return `"Sende diesen Brief nur an ${email}, formatiert mit der **knappen E-Mail-Vorlage** — Alerts, Snapshot, Aktuelle Kommunikation, Support (Zendesk urgent/hoch/eskaliert; Jira nur ${JIRA_PF} + ${JIRA_ESC}), optional Kommerziell/Meetings, Quellenindex. **Ohne** Engineering & Produkt, Account Intelligence und Risiken & Blocker (redundant). Halte jede Quelle als klickbaren Link und die E-Mail scannbar. Betreff: 📋 ${clientName} — [Täglicher Brief | Wöchentlicher Digest] — [DATUM]."`;
       },
       emailSubjectDaily: "Täglicher Brief",
       emailSubjectWeekly: "Wöchentlicher Digest",

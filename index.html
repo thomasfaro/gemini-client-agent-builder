@@ -1835,6 +1835,7 @@ When querying **Zendesk** (org \`${orgId}\`):
 3. **Read the result set** and **filter locally** for:
     *   Issue type **${JIRA_PRODUCT_FEEDBACK_TYPE}** (product feedback)
     *   Summary/title/status indicating **escalation**, **critical bug**, or **major risk** (including \`${JIRA_ESCALATION_SUMMARY_PREFIX}\` prefix and title variants)
+    *   **Date recency (mandatory — do not skip):** the issue's **last-updated date must fall inside the resolved window**. Jira's text search routinely returns stale issues, so **drop any issue whose latest activity predates the window — even if it is a ${JIRA_PRODUCT_FEEDBACK_TYPE} or an escalation.** Check the updated date on each candidate *before* including it. (Full profile / engineering deep-dives use the 90-day window; scheduled runs use the ~24h daily / ~7d weekly window.)
 4. **Budget & stop conditions:** cap at roughly **5 broad queries** and **~50 retrieved issues** per run; sort by **most recently updated** first; **stop** once the resolved window is covered. Do not re-run identical queries or paginate beyond the cap unless the user explicitly asks for an exhaustive audit.
 5. **Email briefs only:** when delegating to \`${EMAIL_DELIVERY_AGENT}\`, the email body lists PF + escalation-class issues — this does **not** limit what you query in Jira.
 
@@ -2237,6 +2238,7 @@ You are the ${EMAIL_DELIVERY_AGENT} agent for ${clientName} intelligence briefs.
       return `### Search rules (mandatory)
 *   **Simple keywords + parallel fan-out:** never type full sentences or questions into a connector search box. Use short keyword combinations and run **several queries in parallel** — one term per query; never stop after a single empty search.
 *   **Absolute dates:** apply the window the orchestrator gives you as **absolute date filters** (e.g. \`since 2026-01-01\`) to remove historical noise.
+*   **Strict temporal post-filter (mandatory):** full-text search tools — **especially Jira**, but also Drive, Gmail, Slack, and Zendesk — frequently **ignore the date filter** and return historical items. After retrieving results, **re-check each item's created/last-updated date and EXCLUDE anything whose latest activity predates the resolved window**. Never include a ticket, document, or email just because it matched a keyword or a type/escalation filter — verify the date first. **Exception:** an explicit historical request or a Drive meeting-notes/decision/keyword lookup (see Drive protocol) may intentionally keep older items; state when you do.
 *   **Noise filtering:** ignore automated/system notifications (bots, generic alerts, no-reply/marketing). Focus on **human content** and **critical signals**.`;
     }
 
@@ -2438,6 +2440,7 @@ Apply these rules to **all** connector queries (Gmail, Calendar, Drive, Slack, Z
 
 ### Translate the lookback window to absolute dates (mandatory)
 *   Before searching, convert the resolved lookback window into **absolute calendar dates** (e.g. \`since 2026-01-01\`) and apply them as date filters on Gmail, Slack, Zendesk, Jira, Calendar, and Drive. This removes historical noise (old 2023–2024 items) — see *Lookback window resolution*.
+*   **Verify dates after retrieving (post-filter, mandatory):** search tools — **especially Jira**, also Drive, Gmail, and Zendesk — may ignore the date filter and surface old items. After each query, **re-read the created/last-updated date of every result and exclude anything whose latest activity is before the window**. Never include a ticket/document/email solely because it matched a keyword or a type/escalation filter — confirm the date first. *Exception:* explicit historical or Drive meeting-notes/decision lookups may intentionally keep older items (see Drive protocol).
 
 ### Source specialization (target the right connector per section)
 Do not scan everything for everything — go where the answer lives:

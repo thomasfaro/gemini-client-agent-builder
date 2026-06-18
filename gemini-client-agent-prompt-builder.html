@@ -1623,15 +1623,18 @@ ${sourceIndexBlock}
 \`\`\``;
     }
 
-    function buildSubagentArchitectureOverview(researchSubagents) {
+    function buildSubagentArchitectureOverview(researchSubagents, clientName) {
+      const mainAgentName = `${clientName || "[CLIENT]"} companion agent`;
       const research = researchSubagents
         .map((sa) => `    *   \`${sa.node}\` — ${sa.label} (${subagentConnectorLabels(sa.connectors)}) — model **${sa.model || GEMINI_PRO_MODEL}**`)
         .join("\n");
       return `**Agent architecture — orchestrator + subagents**
 This account runs as a **multi-agent flow**. The main agent is the **orchestrator**; specialized subagents do the work. Create every subagent listed in **Subagents to create** below (Flow tab → Add subagent).
 
+**Name the main agent exactly:** \`${mainAgentName}\`
+
 ### Roles
-*   **Main agent (orchestrator)** — routes requests, dispatches research, consolidates findings, owns **alert severity** and the **source index**, hands off to the writer, and triggers email on schedule. It does **not** perform raw connector research itself on full runs. Model **${GEMINI_PRO_MODEL}** (required).
+*   **Main agent (orchestrator) — \`${mainAgentName}\`** — routes requests, dispatches research, consolidates findings, owns **alert severity** and the **source index**, hands off to the writer, and triggers email on schedule. It does **not** perform raw connector research itself on full runs. Model **${GEMINI_PRO_MODEL}** (required).
 *   **Research subagents** — each returns one structured packet for its domain:
 ${research}
 *   \`${REPORT_WRITER_AGENT}\` — turns the consolidated packets into the final, formatted, fully-cited brief (no connectors). Model **${GEMINI_PRO_MODEL}** (most critical — never Flash).
@@ -2027,7 +2030,7 @@ ${matchBannerBlock}${configGapsBlock ? `${configGapsBlock}\n\n---\n\n` : ""}${bu
 
 ---
 
-${buildSubagentArchitectureOverview(researchSubagents)}
+${buildSubagentArchitectureOverview(researchSubagents, clientName)}
 
 ---
 

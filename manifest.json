@@ -2,7 +2,7 @@
   "manifest_version": "0.4",
   "name": "airship-mcp",
   "display_name": "Airship MCP",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Airship SDK development server — push notifications, channel management, SDK migration, and build verification.",
   "long_description": "Provides tools for sending push notifications, managing audience segments and channels, verifying iOS/Android builds, guiding SDK migrations, and accessing Airship skills as prompts.",
   "author": {

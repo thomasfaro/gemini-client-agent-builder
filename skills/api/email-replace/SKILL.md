@@ -183,7 +183,7 @@ The specified `channel_id` does not exist or is not an email channel.
 ## Workflows Using This Skill
 
 - **Replace Email Address**: Lookup current email → Replace with new email address
-  - See [Workflow Guide](../../docs/workflows.md#replace-email-address)
+  - See [Workflow Guide](../../workflows/replace-email-address/SKILL.md)
 
 ## Related Skills
 

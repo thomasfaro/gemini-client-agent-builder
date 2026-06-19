@@ -289,9 +289,9 @@ The `body.properties` object:
 ## Workflows Using This Skill
 
 - **Complete User Onboarding**: Register email → Register SMS → Associate both → Track completion → Send welcome
-  - See [Workflow Guide](../../docs/workflows.md#complete-user-onboarding)
+  - See [Workflow Guide](../../workflows/complete-user-onboarding/SKILL.md)
 - **Purchase-to-Pass Update**: POS system emits purchase events → RTDS listener processes events → Updates wallet pass points
-  - See [Workflow Guide](../../docs/workflows.md#purchase-to-pass-update)
+  - See [Workflow Guide](../../workflows/purchase-to-pass-update/SKILL.md)
 
 ## Related Documentation
 

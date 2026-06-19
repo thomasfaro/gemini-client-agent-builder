@@ -160,7 +160,7 @@ Invalid or missing authentication credentials.
 ## Workflows Using This Skill
 
 - **Register and Associate SMS**: Lookup is optional - the registration endpoint handles both new and existing channels automatically. Use lookup only if you need to check channel existence without modifying it.
-  - See [Workflow Guide](../../docs/workflows.md#register-associate-sms)
+  - See [Workflow Guide](../../workflows/register-associate-sms/SKILL.md)
 
 ## Related Skills
 

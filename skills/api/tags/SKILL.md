@@ -311,7 +311,7 @@ Tags are commonly used across many workflows for segmentation and targeting:
 - **Channel Registration**: Add tags when registering channels to organize users
 - **Event Tracking**: Use tags with custom events for advanced segmentation
 
-See [Workflow Examples](../../docs/workflows.md) for complete workflows.
+See [Workflow Examples](../../workflows/) for complete workflows.
 
 ## Related Documentation
 

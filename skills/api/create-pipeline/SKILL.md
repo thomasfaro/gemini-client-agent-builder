@@ -541,7 +541,7 @@ Before creating a pipeline, you can validate the payload:
 ## Workflows Using This Skill
 
 - **Create Custom Event Automation**: Create an automation triggered by Custom Events with personalized push and Message Center
-  - See [Workflow Guide](../../../workflows/create-custom-event-automation/SKILL.md)
+  - See [Workflow Guide](../../workflows/create-custom-event-automation/SKILL.md)
 
 ## Related Documentation
 

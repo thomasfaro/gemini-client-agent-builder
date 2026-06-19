@@ -15,7 +15,20 @@ Airship tools and skills for AI assistants.
 
 Claude Code plugins expose skills as slash commands and also run the MCP server automatically.
 
-### Via marketplace (recommended)
+### Via the community marketplace (recommended)
+
+The plugin is published in Anthropic's community marketplace:
+
+```bash
+claude plugin marketplace add anthropics/claude-plugins-community
+claude plugin install airship-agent-tools@claude-community
+```
+
+Skills are available as `/airship-agent-tools:<skill-name>`.
+
+### From a local clone
+
+Use this when developing against a checkout of this repo:
 
 ```bash
 claude plugin marketplace add /path/to/agent-tools
@@ -63,7 +76,7 @@ Add to your assistant's MCP config file:
 }
 ```
 
-Create OAuth client credentials in the Airship dashboard: next to your project name, select the dropdown menu, then **Settings**. Under **Project settings**, select **OAuth**. Enable **Allow Basic Auth** when creating credentials to generate a Client Secret. Enable the **Push**, **Channels**, and **Named Users** scopes at minimum.
+Create OAuth client credentials in the Airship dashboard: next to your project name, select the dropdown menu, then **Settings**. Under **Project settings**, select **OAuth**. Enable **Allow Basic Auth** when creating credentials to generate a Client Secret. Enable the **Push**, **Channels**, **Named Users**, and **Reports** scopes at minimum. The Reports scope is required for the reports skills (push performance analysis, app activity summaries) and any direct calls to `/api/reports/*`.
 
 ### Config file locations by assistant
 
@@ -82,6 +95,12 @@ AIRSHIP_APP_KEY=your_key AIRSHIP_CLIENT_ID=your_client_id AIRSHIP_CLIENT_SECRET=
 ```
 
 > **Note:** If you are adding the MCP server to your configuration for the first time, a full restart of your CLI/assistant is recommended to ensure the new settings are detected. While `/mcp reload` restarts existing servers, it may not always discover newly created configuration files.
+
+### Updating your credentials
+
+To change your App Key or OAuth credentials later (after rotating a secret or creating a new credential), edit the same `env` block in your MCP config file (see the locations table above) and **fully restart your assistant** so the cached OAuth token is reissued.
+
+If you are only **adding a missing scope** to an existing credential — for example, enabling **Reports** for the reports skills — you do not need to change the App Key, Client ID, or Client Secret. Enable the scope in the dashboard (**Settings → OAuth →** edit the credential), then restart your assistant to refresh the cached token. A `401 "Missing required scope"` response from an `/api/...` call is the signal that the credential is missing a scope the skill needs.
 
 ---
 

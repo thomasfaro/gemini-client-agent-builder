@@ -38,9 +38,34 @@ Call cleanup() on shutdown to close the client and cancel the refresh task.
 #   POST   /api/named_users/disassociate      -> disassociate channel
 #   POST   /api/named_users/uninstall         -> channel uninstall
 #
+# INTENTIONALLY ACCESSED VIA SKILL, NOT WRAPPED:
+#   GET    /api/reports/activity/details              -> skills/api/reports
+#   GET    /api/reports/sends                         -> skills/api/reports
+#   GET    /api/reports/opens                         -> skills/api/reports
+#   GET    /api/reports/devices                       -> skills/api/reports
+#   GET    /api/reports/optins                        -> skills/api/reports
+#   GET    /api/reports/optouts                       -> skills/api/reports
+#   GET    /api/reports/responses/{push_id}           -> skills/api/reports
+#   GET    /api/reports/perpush/detail/{push_id}      -> skills/api/reports
+#   GET    /api/reports/perpush/series/{push_id}      -> skills/api/reports
+#   GET    /api/reports/perpush/pushbody/{push_id}    -> skills/api/reports
+#   GET    /api/reports/pergroup/detail/{group_id}    -> skills/api/reports
+#   GET    /api/reports/pergroup/series/{group_id}    -> skills/api/reports
+#   GET    /api/reports/experiment/overview/{push_id} -> skills/api/reports
+#   GET    /api/reports/experiment/detail/{push_id}/{variant_id} -> skills/api/reports
+#   GET    /api/reports/events                        -> skills/api/reports
+#   GET    /api/reports/events/summary/perpush/{push_id}  -> skills/api/reports
+#   GET    /api/reports/events/summary/pergroup/{group_id} -> skills/api/reports
+#
 # Design rationale: Focus on high-value operations that LLMs need most frequently
 # for push notification workflows. Bulk operations and advanced features can be
 # added incrementally based on usage patterns.
+#
+# Reports endpoints are read-only GETs with rich semantics (precision,
+# pagination, freshness, A/B branching) that are better encoded in skill
+# instructions than in tool signatures. Wrapping all 17 as MCP tools would
+# degrade tool selection accuracy across the server. Execute these via
+# call_airship_api after fetching guidance with get_skill("reports").
 # =============================================================================
 
 import asyncio

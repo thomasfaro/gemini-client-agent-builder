@@ -1,0 +1,44 @@
+{
+  "_status_code": 200,
+  "total_unique_devices": 219727,
+  "date_closed": "2026-05-27 00:00:00",
+  "date_computed": "2026-05-28 02:09:24",
+  "counts": {
+    "ios": {
+      "unique_devices": 156653,
+      "opted_in": 156030,
+      "opted_out": 623,
+      "uninstalled": 79602
+    },
+    "android": {
+      "unique_devices": 47487,
+      "opted_in": 32180,
+      "opted_out": 15307,
+      "uninstalled": 39264
+    },
+    "amazon": {
+      "unique_devices": 45,
+      "opted_in": 27,
+      "opted_out": 18,
+      "uninstalled": 322
+    },
+    "sms": {
+      "unique_devices": 400,
+      "opted_in": 257,
+      "opted_out": 143,
+      "uninstalled": 560
+    },
+    "email": {
+      "unique_devices": 0,
+      "opted_in": 0,
+      "opted_out": 0,
+      "uninstalled": 487463
+    },
+    "web": {
+      "unique_devices": 211,
+      "opted_in": 82,
+      "opted_out": 129,
+      "uninstalled": 515
+    }
+  }
+}

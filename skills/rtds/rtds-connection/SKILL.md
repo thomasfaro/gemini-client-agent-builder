@@ -369,15 +369,15 @@ Monitor for rate limiting responses and implement backoff strategies if needed.
 ## Workflows Using This Skill
 
 - **RTDS Monitoring**: Connect to RTDS → Filter events → Process stream → Reconnect on disconnect
-  - See [Workflow Guide](../../docs/workflows.md#rtds-monitoring)
+  - See [Workflow Guide](../../workflows/rtds-monitoring/SKILL.md)
 - **Purchase-to-Pass Update**: RTDS listener filters for purchase events → Processes events → Updates wallet pass points
-  - See [Workflow Guide](../../docs/workflows.md#purchase-to-pass-update)
+  - See [Workflow Guide](../../workflows/purchase-to-pass-update/SKILL.md)
 
 ## Related Skills
 
-- [Submit Custom Event](../custom-events/) - Submit custom events that appear in RTDS
-- [Register Email Channel](../email-registration/) - Register channels that generate RTDS events
-- [Register SMS Channel](../sms-registration/) - Register channels that generate RTDS events
+- [Submit Custom Event](../../api/custom-events/) - Submit custom events that appear in RTDS
+- [Register Email Channel](../../api/email-registration/) - Register channels that generate RTDS events
+- [Register SMS Channel](../../api/sms-registration/) - Register channels that generate RTDS events
 
 ## Additional Resources
 

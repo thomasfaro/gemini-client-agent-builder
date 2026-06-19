@@ -269,6 +269,7 @@ async def start(ctx: Context) -> Dict[str, Any]:
     capabilities = [
         "Implement a Feature",
         "Send Push Notification",
+        "Reports & Insights",
         "Migrate SDK Version",
         "Lookup Channel/User",
         "Install Skills",
@@ -332,6 +333,8 @@ async def start(ctx: Context) -> Dict[str, Any]:
         return await _start_feature_flow(ctx)
     elif choice == "Send Push Notification":
         return await _start_push_flow(ctx)
+    elif choice == "Reports & Insights":
+        return await _start_reports_flow(ctx)
     elif choice == "Migrate SDK Version":
         return await _start_migration_flow(ctx)
     elif choice == "Lookup Channel/User":
@@ -593,6 +596,28 @@ async def _start_migration_flow(ctx: Context) -> Dict[str, Any]:
     """Run the interactive migration wizard."""
     # Directly run the migration flow with elicitation
     return await _run_migration_flow(ctx)
+
+
+async def _start_reports_flow(ctx: Context) -> Dict[str, Any]:
+    """Route the user to the reports skill set."""
+    return {
+        "status": "info",
+        "message": "Reports & Insights: use the reports skill set.",
+        "skills": [
+            {"name": "reports", "purpose": "Reference: endpoints, rules, vocabulary"},
+            {"name": "push-performance-analysis", "purpose": "Answer 'how did this push do?'"},
+            {"name": "app-activity-summary", "purpose": "Answer 'how is the app doing this week?'"},
+        ],
+        "next_step": (
+            "Call get_skill('reports') for the full reference, or "
+            "get_skill('push-performance-analysis') / get_skill('app-activity-summary') "
+            "for the workflows. Execute via call_airship_api."
+        ),
+        "scope_reminder": (
+            "Requires OAuth credential with the 'rpt' scope. If a 401 occurs, "
+            "enable Reports in the dashboard OAuth credential and restart the MCP client."
+        ),
+    }
 
 
 async def _start_lookup_flow(ctx: Context) -> Dict[str, Any]:

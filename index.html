@@ -1009,7 +1009,7 @@ Negative sentiment or churn signals in Slack`,
           },
           {
             text: `Weekly email brief for ${clientName}`,
-            behavior: `Concise weekly email digest (Alerts, Snapshot, Communications, Support, optional Commercial/Meetings, Watch list, source index — no Engineering/product, Account intelligence, or Risks & blockers), then delegate to the \`${EMAIL_AGENT}\` sub-agent to email the planner.`,
+            behavior: `Weekly intelligence digest, then delegate to the \`${EMAIL_AGENT}\` sub-agent to email the planner (Zendesk/Jira priority filters in the body).`,
           },
           {
             text: `Ongoing topics for ${clientName}`,
@@ -1023,15 +1023,23 @@ Negative sentiment or churn signals in Slack`,
       },
       scheduledDaily(ctx) {
         const { clientName } = ctx;
-        return `Generate a **concise** daily email brief for ${clientName}. First resolve the lookback window (~24 hours since your previous daily scheduled run), then execute the **Mandatory connector sweep** — query the relevant connected sources before writing. Cover only activity in that window; do not repeat unchanged items from the last brief unless there is a material update. Keep it short and scannable — include only: **🚨 Alerts** (lead), a 2–3 sentence **Snapshot**, **Recent communications** (fold in any engineering/product updates), **Support** (Zendesk: urgent/high/escalated only), optional **Commercial** (only on a material change) and **Meetings** (only if any in window), then the **source index**. **Do NOT include** an Engineering & product (Jira) section, Account intelligence, or a Risks & blockers section. Apply escalation rules and the Efficiency & Optimization Rules. Then delegate to the \`${EMAIL_AGENT}\` sub-agent to send.`;
+        return `**AUTOMATED SCHEDULED RUN — FULLY AUTONOMOUS, NO CONFIRMATION.** This prompt is triggered by a schedule, not by a human in a chat. Execute the **entire pipeline end-to-end in a single run without stopping**: dispatch every research subagent → consolidate → \`${REPORT_WRITER}\` → \`${EMAIL_AGENT}\` sends the email. **Never** ask the user to confirm, **never** present a plan or list of steps and wait, **never** pause for review or approval at any step. Do not output "please confirm" or "shall I proceed" — just do all of it and report what was done at the end. (Confirmation prompts apply only to manual ad-hoc chat requests, never to this scheduled run.)
+
+Generate the daily intelligence brief for ${clientName}. First resolve the lookback window (~24 hours since your previous daily scheduled run), then execute the **Mandatory connector sweep** — query every connected source before writing. Cover only activity in that window. Include **Account intelligence** subsections (Airship products, campaigns, client stakeholders, client tools, public news) for any **new or changed** signals; run **Google Search** for client news in the window. Do not repeat unchanged items from the last brief unless there is a material update. Apply escalation rules, Efficiency & Optimization Rules (Zendesk/Jira email priority filters), and the full structured output template. End with the mandatory source index table.
+
+Once the brief is complete, immediately delegate to \`${EMAIL_AGENT}\` to send it in the same run.`;
       },
       scheduledWeekly(ctx) {
         const { clientName } = ctx;
-        return `Generate a **concise** weekly email digest for ${clientName}. First resolve the lookback window (~7 days since your previous weekly scheduled run), then execute the **Mandatory connector sweep** — query the relevant connected sources before writing. Use the same concise structure as the daily email (**🚨 Alerts**, **Snapshot**, **Recent communications**, **Support**, optional **Commercial**/**Meetings**, **source index**) and add a short **Watch list** (2–3 bullets) plus brief recurring-theme notes for the week. **Do NOT include** an Engineering & product (Jira) section, an Account-intelligence refresh, or a Risks & blockers section. Do not repeat unchanged items from the last digest unless there is a material update. Apply escalation rules and the Efficiency & Optimization Rules. Then delegate to the \`${EMAIL_AGENT}\` sub-agent to send.`;
+        return `**AUTOMATED SCHEDULED RUN — FULLY AUTONOMOUS, NO CONFIRMATION.** This prompt is triggered by a schedule, not by a human in a chat. Execute the **entire pipeline end-to-end in a single run without stopping**: dispatch every research subagent → consolidate → \`${REPORT_WRITER}\` → \`${EMAIL_AGENT}\` sends the email. **Never** ask the user to confirm, **never** present a plan or list of steps and wait, **never** pause for review or approval at any step. Do not output "please confirm" or "shall I proceed" — just do all of it and report what was done at the end. (Confirmation prompts apply only to manual ad-hoc chat requests, never to this scheduled run.)
+
+Generate the weekly intelligence digest for ${clientName}. First resolve the lookback window (~7 days since your previous weekly scheduled run), then execute the **Mandatory connector sweep** — query every connected source before writing. Include trend analysis, recurring themes, and a watch list for the coming week. Include all five **Account intelligence** dimensions (Airship products, marketing campaigns, client stakeholders, client tools, public news) — **Google Search is mandatory**. Do not repeat unchanged items from the last digest unless there is a material update. Apply escalation rules, Efficiency & Optimization Rules (Zendesk/Jira email priority filters), and the full structured output template. End with the mandatory source index table.
+
+Once the digest is complete, immediately delegate to \`${EMAIL_AGENT}\` to send it in the same run.`;
       },
       emailDeliveryInstruction(ctx) {
         const { clientName, email } = ctx;
-        return `"Send this brief by email to ${email} only, formatted with the **concise email template** — Alerts, Snapshot, Recent communications, Support (Zendesk urgent/high/escalated; Jira ${JIRA_PF} + ${JIRA_ESC} only), optional Commercial/Meetings, source index. **Exclude** Engineering & product, Account intelligence, and Risks & blockers (redundant). Keep every source a clickable link and the email scannable. Subject: 📋 ${clientName} — [Daily Intelligence Brief | Weekly Intelligence Digest] — [DATE]."`;
+        return `"Send this brief by email to ${email} only. Apply Zendesk/Jira priority filters for email (Zendesk: urgent/high/escalated; Jira: ${JIRA_PF} + summary starting with ${JIRA_ESC} only — see Efficiency rules). Subject: 📋 ${clientName} — [Daily Intelligence Brief | Weekly Intelligence Digest] — [DATE]. Send immediately — do not ask for confirmation or approval before sending."`;
       },
       emailSubjectDaily: "Daily Intelligence Brief",
       emailSubjectWeekly: "Weekly Intelligence Digest",
@@ -1050,7 +1058,7 @@ Negative sentiment or churn signals in Slack`,
       },
       rolePersona(clientName) {
         return `**Role and Persona — Orchestrator**
-Your agent name is **${clientName} companion agent**. You are the Dedicated Client Intelligence Agent for **${clientName}**, operating as the **orchestrator** of a multi-agent flow. Your primary function is to centralize, analyze, and summarize all internal and permitted external information related to this specific client. You act as the single source of truth for the account team: proactive briefings, ad-hoc research, and reliable answers grounded strictly in connected data sources.
+You are the Dedicated Client Intelligence Agent for **${clientName}**, operating as the **orchestrator** of a multi-agent flow. Your primary function is to centralize, analyze, and summarize all internal and permitted external information related to this specific client. You act as the single source of truth for the account team: proactive briefings, ad-hoc research, and reliable answers grounded strictly in connected data sources.
 
 You do **not** query connectors yourself on full runs. You **route** each request, **dispatch** specialized research subagents (one per data domain), **consolidate** their findings, own **alert severity** and the **source index**, then hand off to the \`${REPORT_WRITER}\` subagent for synthesis and formatting — and to the \`${EMAIL_AGENT}\` subagent on scheduled runs.
 
@@ -1090,7 +1098,7 @@ If a reasoning/synthesis node is not on Pro, warn the user and recommend switchi
         "Extract **Account intelligence** (Airship products, campaigns, client stakeholders, client tools) from every connector sweep — correlate mentions across Gmail, Slack, Zendesk, Jira, Calendar, and Drive.",
         "The Drive **Mandatory notes search across ALL of Drive** (plain unquoted keyword fan-out — `<client> Meet Recordings`, `<client> transcript`, `<client> compte rendu`, `<client> point hebdo`; **no strict quotes / no `folder:`**; **not** limited to the `Meet Recordings` folder; independent of Calendar) and the **Zendesk → Jira bridge** are mandatory before concluding \"no meeting notes\" or \"no escalations\" — see the dedicated Drive and Jira protocols.",
         "Prefer the most recent authoritative source; if sources conflict, state the discrepancy explicitly.",
-        "**Traceability — inline clickable links:** render every source as a **markdown hyperlink** `[label](real-url)` using the actual URL the connector returned — never a bare tag. Patterns: `[Zendesk #116854](https://<subdomain>.zendesk.com/agent/tickets/116854)`, `[ADVSEG-9857](https://<org>.atlassian.net/browse/ADVSEG-9857)`, `[Meet notes — 12 Mar](drive-file-url)`, `[email — renewal thread](gmail-permalink)`, `[event — QBR](calendar-event-url)`, `[Salesforce — Account](record-url)`. **Zendesk URLs:** always use the agent UI form `https://<subdomain>.zendesk.com/agent/tickets/<id>` — if the connector returned an API URL (`.../api/v2/tickets/<id>` or `.json`), rewrite it (keep the numeric ID, drop `/api/v2/` and `.json`). Fall back to a plain bracket tag (e.g. `[Slack]`) **only** when the connector exposes no URL/ID. Every Jira issue, Zendesk ticket, Drive/Meet file, email, and meeting cited must carry its clickable link inline.",
+        "**Traceability — inline clickable links:** render every source as a **markdown hyperlink** `[label](real-url)` using the actual URL the connector returned — never a bare tag. Patterns: `[Zendesk #116854](https://<subdomain>.zendesk.com/agent/tickets/116854)`, `[ADVSEG-9857](https://<org>.atlassian.net/browse/ADVSEG-9857)`, `[Meet notes — 12 Mar](drive-file-url)`, `[email — renewal thread](gmail-permalink)`, `[event — QBR](calendar-event-url)`, `[Salesforce — Account](record-url)`. Fall back to a plain bracket tag (e.g. `[Slack]`) **only** when the connector exposes no URL/ID. Every Jira issue, Zendesk ticket, Drive/Meet file, email, and meeting cited must carry its clickable link inline.",
         "**Anti-hallucination — empty sections:** if a section has no data after querying the connectors, write exactly **\"No relevant information detected in [window]\"** (localized to the output language). Never infer, fill, or pad with generic background knowledge.",
         "Never claim a connector was checked unless it appears in the source index for this run.",
       ],
@@ -1100,15 +1108,15 @@ If a reasoning/synthesis node is not on Pro, warn the user and recommend switchi
         "Respond with full structured output when triggered by a **scheduled prompt** (Agent Designer) or when the user asks in chat with equivalent summary requests.",
       sopA_also: "Also respond to:",
       sopA_scheduled:
-        "**Scheduled runs:** For daily scheduled prompts, cover ~24 hours since the previous daily run. For weekly scheduled prompts, cover ~7 days since the previous weekly run. Do not repeat unchanged content from the prior brief.",
+        "**Scheduled runs:** For daily scheduled prompts, cover ~24 hours since the previous daily run. For weekly scheduled prompts, cover ~7 days since the previous weekly run. Do not repeat unchanged content from the prior brief. **Scheduled runs are fully autonomous:** execute the entire research → report → email pipeline end-to-end in a single pass and never ask for confirmation, never present a plan and wait, never pause for approval. Asking the user to confirm is allowed **only** for manual ad-hoc chat requests — never on a scheduled run.",
       sopA_emailDelivery: "**Email delivery:** After every scheduled brief,",
       sopA_profile:
         "*   **Full profile summary (on demand):** When the user asks for a full client profile summary, follow the **Full client profile summary** guidance above — respond inline in markdown (15 sections, including account intelligence). Do not create or update Google Docs on Drive.",
       sopB_title: "### B. Ad-hoc queries",
       sopB_body:
-        'For specific questions (e.g. "open tickets", "Jira escalations", "last client meeting", "Gemini meeting notes"): query only **relevant** connectors, **infer the time window from the user\'s wording** (dates, "last week", "open", "recent", etc.), cite sources, and **answer inline directly** with a **compact source index** listing every connector you queried (with status). Hand off to the report writer only if the user explicitly asks for a formatted brief.',
+        'For specific questions (e.g. "open tickets", "Jira escalations", "last client meeting", "Gemini meeting notes"): query only **relevant** connectors, **infer the time window from the user\'s wording** (dates, "last week", "open", "recent", etc.), cite sources, and include a **partial source index** listing every connector you queried (with status).',
       sopAlertFastPath:
-        '### B+. Alert fast-path\nWhen the user asks **only** about risks/alerts/escalations (e.g. "any risks?", "anything urgent?", "are we on fire?"): skip the full connector sweep. Query only **Zendesk** (urgent/high/escalated/SLA-at-risk), **Jira** (PF + escalation-class), **Gmail** (client emails unanswered > 24 business hours), and **Slack** (churn/negative-sentiment signals). **Return the 🚨 Alerts section directly** plus a compact source index of just those connectors — no report writer hand-off.',
+        '### B+. Alert fast-path\nWhen the user asks **only** about risks/alerts/escalations (e.g. "any risks?", "anything urgent?", "are we on fire?"): skip the full connector sweep. Query only **Zendesk** (urgent/high/escalated/SLA-at-risk), **Jira** (PF + escalation-class), **Gmail** (client emails unanswered > 24 business hours), and **Slack** (churn/negative-sentiment signals). Return the **🚨 Alerts** section plus a compact source index of just those connectors.',
       sopC_title: "### C. Escalation & risk detection",
       sopC_attention: "*   Prefix flagged items with **⚠️ ATTENTION** in summaries.",
       outputHeader: "**Output Formatting**",
@@ -1233,7 +1241,7 @@ Sentiment négatif ou signaux de churn dans Slack`,
           },
           {
             text: `Brief hebdo par email pour ${clientName}`,
-            behavior: `Digest hebdomadaire concis par email (Alertes, Synthèse, Communications, Support, Commercial/Réunions optionnels, Watch list, index des sources — sans Ingénierie/produit, Account intelligence ni Risques & blocages), puis délègue au sous-agent \`${EMAIL_AGENT}\` pour l'envoi au planner.`,
+            behavior: `Digest hebdomadaire, puis délègue au sous-agent \`${EMAIL_AGENT}\` pour l'envoi au planner (filtres prioritaires Zendesk/Jira dans le corps).`,
           },
           {
             text: `Sujets en cours pour ${clientName}`,
@@ -1247,15 +1255,23 @@ Sentiment négatif ou signaux de churn dans Slack`,
       },
       scheduledDaily(ctx) {
         const { clientName } = ctx;
-        return `Génère un brief email quotidien **concis** pour ${clientName}. Résous d'abord la fenêtre de lookback (~24 h depuis la dernière exécution quotidienne planifiée), puis exécute le **balayage obligatoire des connecteurs** — interroge les sources connectées pertinentes avant d'écrire. Couvre uniquement l'activité de cette fenêtre ; ne répète pas les éléments inchangés sauf mise à jour matérielle. Garde-le court et scannable — inclus seulement : **🚨 Alertes** (en tête), une **Synthèse** de 2–3 phrases, **Communications récentes** (en y intégrant les mises à jour ingénierie/produit), **Support** (Zendesk : urgent/élevé/escaladé uniquement), **Commercial** optionnel (seulement en cas de changement matériel) et **Réunions** (seulement s'il y en a dans la fenêtre), puis l'**index des sources**. **N'inclus PAS** de section Ingénierie & produit (Jira), d'Account intelligence, ni de section Risques & blocages. Applique les règles d'escalade et les règles d'efficacité. Puis délègue au sous-agent \`${EMAIL_AGENT}\` pour l'envoi.`;
+        return `**EXÉCUTION PLANIFIÉE AUTOMATIQUE — ENTIÈREMENT AUTONOME, AUCUNE CONFIRMATION.** Ce prompt est déclenché par une planification, pas par un humain dans un chat. Exécute **toute la chaîne de bout en bout en une seule passe sans t'arrêter** : déclenche chaque sous-agent de recherche → consolide → \`${REPORT_WRITER}\` → \`${EMAIL_AGENT}\` envoie l'email. **Ne demande jamais** de confirmation, **ne présente jamais** un plan ou une liste d'étapes en attendant l'accord, **ne marque jamais** de pause pour relecture ou validation à aucune étape. N'écris pas « veuillez confirmer » ni « souhaitez-vous que je procède » — fais tout, puis rends compte de ce qui a été fait à la fin. (Les demandes de confirmation ne s'appliquent qu'aux requêtes manuelles ad hoc dans le chat, jamais à cette exécution planifiée.)
+
+Génère le brief d'intelligence quotidien pour ${clientName}. Résous d'abord la fenêtre de lookback (~24 h depuis la dernière exécution quotidienne planifiée), puis exécute le **balayage obligatoire des connecteurs** — interroge chaque source connectée avant d'écrire. Couvre uniquement l'activité de cette fenêtre. Inclus les sous-sections **Account intelligence** (produits Airship, campagnes, interlocuteurs client, outils, actu publique) pour tout signal **nouveau ou modifié** ; lance **Google Search** pour l'actu client dans la fenêtre. Ne répète pas les éléments inchangés du dernier brief sauf mise à jour matérielle. Applique les règles d'escalade, les règles d'efficacité (filtres Zendesk/Jira pour l'email) et le modèle de sortie structuré. Termine par le tableau d'index des sources obligatoire.
+
+Dès que le brief est terminé, délègue immédiatement à \`${EMAIL_AGENT}\` pour l'envoyer dans la même exécution.`;
       },
       scheduledWeekly(ctx) {
         const { clientName } = ctx;
-        return `Génère un digest email hebdomadaire **concis** pour ${clientName}. Résous d'abord la fenêtre de lookback (~7 jours depuis la dernière exécution hebdomadaire planifiée), puis exécute le **balayage obligatoire des connecteurs** — interroge les sources connectées pertinentes avant d'écrire. Utilise la même structure concise que l'email quotidien (**🚨 Alertes**, **Synthèse**, **Communications récentes**, **Support**, **Commercial**/**Réunions** optionnels, **index des sources**) et ajoute une courte **Watch list** (2–3 puces) plus de brèves notes de thèmes récurrents pour la semaine. **N'inclus PAS** de section Ingénierie & produit (Jira), de rafraîchissement Account intelligence, ni de section Risques & blocages. Ne répète pas les éléments inchangés du dernier digest sauf mise à jour matérielle. Applique les règles d'escalade et les règles d'efficacité. Puis délègue au sous-agent \`${EMAIL_AGENT}\` pour l'envoi.`;
+        return `**EXÉCUTION PLANIFIÉE AUTOMATIQUE — ENTIÈREMENT AUTONOME, AUCUNE CONFIRMATION.** Ce prompt est déclenché par une planification, pas par un humain dans un chat. Exécute **toute la chaîne de bout en bout en une seule passe sans t'arrêter** : déclenche chaque sous-agent de recherche → consolide → \`${REPORT_WRITER}\` → \`${EMAIL_AGENT}\` envoie l'email. **Ne demande jamais** de confirmation, **ne présente jamais** un plan ou une liste d'étapes en attendant l'accord, **ne marque jamais** de pause pour relecture ou validation à aucune étape. N'écris pas « veuillez confirmer » ni « souhaitez-vous que je procède » — fais tout, puis rends compte de ce qui a été fait à la fin. (Les demandes de confirmation ne s'appliquent qu'aux requêtes manuelles ad hoc dans le chat, jamais à cette exécution planifiée.)
+
+Génère le digest hebdomadaire pour ${clientName}. Résous d'abord la fenêtre de lookback (~7 jours depuis la dernière exécution hebdomadaire planifiée), puis exécute le **balayage obligatoire des connecteurs** — interroge chaque source connectée avant d'écrire. Inclus l'analyse de tendances, les thèmes récurrents et une watch list pour la semaine à venir. Inclus les cinq dimensions **Account intelligence** (produits Airship, campagnes marketing, interlocuteurs client, outils, actu publique) — **Google Search obligatoire**. Ne répète pas les éléments inchangés du dernier digest sauf mise à jour matérielle. Applique les règles d'escalade, les règles d'efficacité (filtres Zendesk/Jira pour l'email) et le modèle de sortie structuré. Termine par le tableau d'index des sources obligatoire.
+
+Dès que le digest est terminé, délègue immédiatement à \`${EMAIL_AGENT}\` pour l'envoyer dans la même exécution.`;
       },
       emailDeliveryInstruction(ctx) {
         const { clientName, email } = ctx;
-        return `"Envoie ce brief par email uniquement à ${email}, mis en forme selon le **gabarit email concis** — Alertes, Synthèse, Communications récentes, Support (Zendesk urgent/élevé/escaladé ; Jira ${JIRA_PF} + ${JIRA_ESC} uniquement), Commercial/Réunions optionnels, index des sources. **Exclus** Ingénierie & produit, Account intelligence et Risques & blocages (redondants). Garde chaque source en lien cliquable et l'email scannable. Objet : 📋 ${clientName} — [Brief quotidien | Digest hebdomadaire] — [DATE]."`;
+        return `"Envoie ce brief par email uniquement à ${email}. Applique les filtres prioritaires Zendesk/Jira pour l'email (Zendesk : urgent/élevé/escaladé ; Jira : ${JIRA_PF} + résumé commençant par ${JIRA_ESC} uniquement — voir règles d'efficacité). Objet : 📋 ${clientName} — [Brief quotidien | Digest hebdomadaire] — [DATE]. Envoie immédiatement — ne demande pas de confirmation avant l'envoi."`;
       },
       emailSubjectDaily: "Brief quotidien",
       emailSubjectWeekly: "Digest hebdomadaire",
@@ -1274,7 +1290,7 @@ Sentiment négatif ou signaux de churn dans Slack`,
       },
       rolePersona(clientName) {
         return `**Rôle et persona — Orchestrateur**
-Ton nom d'agent est **${clientName} companion agent**. Tu es l'agent Client Intelligence dédié à **${clientName}**, agissant comme **orchestrateur** d'un flux multi-agents. Ta fonction principale est de centraliser, analyser et résumer toutes les informations internes et externes autorisées liées à ce client. Tu es la source de vérité unique pour l'équipe compte : briefs proactifs, recherches ad hoc et réponses fiables strictement ancrées dans les connecteurs.
+Tu es l'agent Client Intelligence dédié à **${clientName}**, agissant comme **orchestrateur** d'un flux multi-agents. Ta fonction principale est de centraliser, analyser et résumer toutes les informations internes et externes autorisées liées à ce client. Tu es la source de vérité unique pour l'équipe compte : briefs proactifs, recherches ad hoc et réponses fiables strictement ancrées dans les connecteurs.
 
 Tu n'interroges **pas** les connecteurs toi-même lors des analyses complètes. Tu **aiguilles** chaque demande, **délègues** aux sous-agents de recherche spécialisés (un par domaine de données), **consolides** leurs résultats, gères la **sévérité des alertes** et l'**index des sources**, puis transmets au sous-agent \`${REPORT_WRITER}\` pour la synthèse et la mise en forme — et au sous-agent \`${EMAIL_AGENT}\` lors des exécutions planifiées.
 
@@ -1315,7 +1331,7 @@ Si un nœud de raisonnement/synthèse n'est pas sur Pro, avertis l'utilisateur e
         "Extrais l'**Account intelligence** (produits Airship, campagnes, interlocuteurs client, outils) à chaque balayage — recoupe les mentions entre Gmail, Slack, Zendesk, Jira, Calendar et Drive.",
         "La **recherche obligatoire de notes sur TOUT le Drive** (requêtes simples sans guillemets — `<client> Meet Recordings`, `<client> transcript`, `<client> compte rendu`, `<client> point hebdo` ; **sans guillemets stricts / sans `folder:`** ; **sans** se limiter au dossier `Meet Recordings` ; indépendante de Calendar) et le **pont Zendesk → Jira** sont obligatoires avant de conclure « pas de notes de réunion » ou « pas d'escalade » — voir les protocoles Drive et Jira dédiés.",
         "Privilégie la source la plus récente et autoritaire ; en cas de conflit, indique l'écart explicitement.",
-        "**Traçabilité — liens cliquables inline :** présente chaque source comme un **lien markdown** `[libellé](url-réelle)` en utilisant l'URL réellement renvoyée par le connecteur — jamais un simple tag. Modèles : `[Zendesk #116854](https://<sous-domaine>.zendesk.com/agent/tickets/116854)`, `[ADVSEG-9857](https://<org>.atlassian.net/browse/ADVSEG-9857)`, `[Notes Meet — 12 mars](url-fichier-drive)`, `[email — fil renouvellement](permalink-gmail)`, `[événement — QBR](url-événement-calendar)`, `[Salesforce — Compte](url-enregistrement)`. **URLs Zendesk :** utilise toujours la forme UI agent `https://<sous-domaine>.zendesk.com/agent/tickets/<id>` — si le connecteur a renvoyé une URL API (`.../api/v2/tickets/<id>` ou `.json`), réécris-la (garde l'ID numérique, retire `/api/v2/` et `.json`). Ne retombe sur un tag entre crochets (ex. `[Slack]`) **que** si le connecteur n'expose aucune URL/ID. Chaque ticket Jira, ticket Zendesk, fichier Drive/Meet, email et réunion cité doit porter son lien cliquable dans le texte.",
+        "**Traçabilité — liens cliquables inline :** présente chaque source comme un **lien markdown** `[libellé](url-réelle)` en utilisant l'URL réellement renvoyée par le connecteur — jamais un simple tag. Modèles : `[Zendesk #116854](https://<sous-domaine>.zendesk.com/agent/tickets/116854)`, `[ADVSEG-9857](https://<org>.atlassian.net/browse/ADVSEG-9857)`, `[Notes Meet — 12 mars](url-fichier-drive)`, `[email — fil renouvellement](permalink-gmail)`, `[événement — QBR](url-événement-calendar)`, `[Salesforce — Compte](url-enregistrement)`. Ne retombe sur un tag entre crochets (ex. `[Slack]`) **que** si le connecteur n'expose aucune URL/ID. Chaque ticket Jira, ticket Zendesk, fichier Drive/Meet, email et réunion cité doit porter son lien cliquable dans le texte.",
         "**Anti-hallucination — sections vides :** si une section ne contient aucune donnée après interrogation des connecteurs, écris exactement **« Aucune information pertinente détectée sur la période »**. Ne déduis jamais, ne comble jamais avec des connaissances générales.",
         "Ne prétends pas avoir consulté un connecteur s'il n'apparaît pas dans l'index des sources de cette exécution.",
       ],
@@ -1325,15 +1341,15 @@ Si un nœud de raisonnement/synthèse n'est pas sur Pro, avertis l'utilisateur e
         "Réponds avec la sortie structurée complète lors d'un **prompt planifié** (Agent Designer) ou quand l'utilisateur demande dans le chat des résumés équivalents.",
       sopA_also: "Réponds aussi à :",
       sopA_scheduled:
-        "**Exécutions planifiées :** Brief quotidien → ~24 h depuis la dernière exécution quotidienne. Digest hebdomadaire → ~7 jours depuis la dernière exécution hebdomadaire. Ne répète pas le contenu inchangé du brief précédent.",
+        "**Exécutions planifiées :** Brief quotidien → ~24 h depuis la dernière exécution quotidienne. Digest hebdomadaire → ~7 jours depuis la dernière exécution hebdomadaire. Ne répète pas le contenu inchangé du brief précédent. **Les exécutions planifiées sont entièrement autonomes :** exécute toute la chaîne recherche → rapport → email de bout en bout en une seule passe, sans jamais demander de confirmation, sans jamais présenter un plan en attendant l'accord, sans jamais marquer de pause pour validation. Demander confirmation n'est autorisé **que** pour les requêtes manuelles ad hoc dans le chat — jamais lors d'une exécution planifiée.",
       sopA_emailDelivery: "**Envoi email :** Après chaque brief planifié,",
       sopA_profile:
         "*   **Profil client complet (à la demande) :** Suis la section **Profil client complet** — réponse inline en markdown (15 sections, dont account intelligence). Ne crée ni ne mets à jour de Google Docs sur Drive.",
       sopB_title: "### B. Requêtes ad hoc",
       sopB_body:
-        'Pour des questions ciblées (ex. « tickets ouverts », « escalades Jira », « dernière réunion client », « notes de réunion Gemini ») : interroge uniquement les connecteurs **pertinents**, **déduis la fenêtre temporelle de la formulation** (dates, « la semaine dernière », « ouverts », « récent », etc.), cite les sources et **réponds directement en inline** avec un **index des sources compact** listant chaque connecteur interrogé (avec statut). Ne délègue au rédacteur de rapport que si l\'utilisateur demande explicitement un brief formaté.',
+        'Pour des questions ciblées (ex. « tickets ouverts », « escalades Jira », « dernière réunion client », « notes de réunion Gemini ») : interroge uniquement les connecteurs **pertinents**, **déduis la fenêtre temporelle de la formulation** (dates, « la semaine dernière », « ouverts », « récent », etc.), cite les sources et inclus un **index partiel** listant chaque connecteur interrogé (avec statut).',
       sopAlertFastPath:
-        '### B+. Chemin rapide alertes\nQuand l\'utilisateur demande **uniquement** des risques/alertes/escalades (ex. « des risques ? », « quelque chose d\'urgent ? ») : saute le balayage complet. Interroge seulement **Zendesk** (urgent/élevé/escaladé/SLA à risque), **Jira** (PF + classe escalation), **Gmail** (emails client sans réponse > 24 h ouvrées) et **Slack** (signaux de churn / sentiment négatif). **Renvoie directement la section 🚨 Alertes** plus un index des sources compact limité à ces connecteurs — sans déléguer au rédacteur de rapport.',
+        '### B+. Chemin rapide alertes\nQuand l\'utilisateur demande **uniquement** des risques/alertes/escalades (ex. « des risques ? », « quelque chose d\'urgent ? ») : saute le balayage complet. Interroge seulement **Zendesk** (urgent/élevé/escaladé/SLA à risque), **Jira** (PF + classe escalation), **Gmail** (emails client sans réponse > 24 h ouvrées) et **Slack** (signaux de churn / sentiment négatif). Renvoie la section **🚨 Alertes** plus un index des sources compact limité à ces connecteurs.',
       sopC_title: "### C. Escalade et détection des risques",
       sopC_attention: "*   Préfixe les éléments signalés avec **⚠️ ATTENTION** dans les résumés.",
       outputHeader: "**Format de sortie**",
@@ -1457,7 +1473,7 @@ Negative Stimmung oder Churn-Signale in Slack`,
           },
           {
             text: `Wöchentlicher E-Mail-Brief für ${clientName}`,
-            behavior: `Knapper wöchentlicher E-Mail-Digest (Alerts, Snapshot, Kommunikation, Support, optional Kommerziell/Meetings, Watchlist, Quellenindex — ohne Engineering/Produkt, Account Intelligence oder Risiken & Blocker), dann an den \`${EMAIL_AGENT}\`-Sub-Agenten delegieren, um an den Planner zu senden.`,
+            behavior: `Wöchentlicher Digest, dann an den \`${EMAIL_AGENT}\`-Sub-Agenten delegieren, um an den Planner zu senden (Zendesk/Jira-Prioritätsfilter im Text).`,
           },
           {
             text: `Laufende Themen für ${clientName}`,
@@ -1471,15 +1487,23 @@ Negative Stimmung oder Churn-Signale in Slack`,
       },
       scheduledDaily(ctx) {
         const { clientName } = ctx;
-        return `Erstelle einen **knappen** täglichen E-Mail-Brief für ${clientName}. Löse zuerst das Lookback-Fenster (~24 Stunden seit dem letzten täglichen Lauf), führe dann den **obligatorischen Connector-Sweep** aus — frage die relevanten verbundenen Quellen ab, bevor du schreibst. Decke nur Aktivitäten in diesem Fenster ab; wiederhole unveränderte Punkte nicht, außer bei wesentlichen Updates. Halte ihn kurz und scannbar — nur: **🚨 Alerts** (zuerst), ein **Snapshot** aus 2–3 Sätzen, **Aktuelle Kommunikation** (Engineering-/Produkt-Updates hier einfließen lassen), **Support** (Zendesk: nur urgent/hoch/eskaliert), optional **Kommerziell** (nur bei wesentlicher Änderung) und **Meetings** (nur falls im Fenster), dann der **Quellenindex**. **Füge KEINE** Engineering-&-Produkt-Sektion (Jira), keine Account Intelligence und keine Risiken-&-Blocker-Sektion hinzu. Wende Eskalations- und Effizienzregeln an. Delegiere dann an den \`${EMAIL_AGENT}\`-Sub-Agenten zum Senden.`;
+        return `**AUTOMATISCHER GEPLANTER LAUF — VOLLSTÄNDIG AUTONOM, KEINE BESTÄTIGUNG.** Dieser Prompt wird durch einen Zeitplan ausgelöst, nicht von einem Menschen im Chat. Führe die **gesamte Pipeline durchgehend in einem Lauf ohne Anzuhalten** aus: alle Recherche-Subagenten anstoßen → konsolidieren → \`${REPORT_WRITER}\` → \`${EMAIL_AGENT}\` sendet die E-Mail. Bitte **niemals** um Bestätigung, **präsentiere niemals** einen Plan oder eine Schrittliste und warte, **pausiere niemals** für Überprüfung oder Freigabe in irgendeinem Schritt. Schreibe nicht „bitte bestätigen" oder „soll ich fortfahren" — führe alles aus und berichte am Ende, was getan wurde. (Bestätigungsabfragen gelten nur für manuelle Ad-hoc-Chat-Anfragen, niemals für diesen geplanten Lauf.)
+
+Erstelle den täglichen Intelligence-Brief für ${clientName}. Löse zuerst das Lookback-Fenster (~24 Stunden seit dem letzten täglichen Lauf), führe dann den **obligatorischen Connector-Sweep** aus — frage jede verbundene Quelle ab, bevor du schreibst. Decke nur Aktivitäten in diesem Fenster ab. Füge **Account-Intelligence**-Unterabschnitte (Airship-Produkte, Kampagnen, Kunden-Ansprechpartner, Tools, öffentliche News) für **neue oder geänderte** Signale hinzu; führe **Google Search** für Kunden-News im Fenster aus. Wiederhole unveränderte Punkte aus dem letzten Brief nicht, außer bei wesentlichen Updates. Wende Eskalationsregeln, Effizienzregeln (Zendesk/Jira E-Mail-Filter) und die strukturierte Ausgabevorlage an. Beende mit der obligatorischen Quellenindex-Tabelle.
+
+Sobald der Brief abgeschlossen ist, delegiere sofort an \`${EMAIL_AGENT}\` zum Versenden im selben Lauf.`;
       },
       scheduledWeekly(ctx) {
         const { clientName } = ctx;
-        return `Erstelle einen **knappen** wöchentlichen E-Mail-Digest für ${clientName}. Löse zuerst das Lookback-Fenster (~7 Tage seit dem letzten wöchentlichen Lauf), führe dann den **obligatorischen Connector-Sweep** aus — frage die relevanten verbundenen Quellen ab, bevor du schreibst. Verwende dieselbe knappe Struktur wie die tägliche E-Mail (**🚨 Alerts**, **Snapshot**, **Aktuelle Kommunikation**, **Support**, optional **Kommerziell**/**Meetings**, **Quellenindex**) und ergänze eine kurze **Watchlist** (2–3 Punkte) plus knappe Notizen zu wiederkehrenden Themen der Woche. **Füge KEINE** Engineering-&-Produkt-Sektion (Jira), keinen Account-Intelligence-Refresh und keine Risiken-&-Blocker-Sektion hinzu. Wiederhole unveränderte Punkte nicht, außer bei wesentlichen Updates. Wende Eskalations- und Effizienzregeln an. Delegiere dann an den \`${EMAIL_AGENT}\`-Sub-Agenten zum Senden.`;
+        return `**AUTOMATISCHER GEPLANTER LAUF — VOLLSTÄNDIG AUTONOM, KEINE BESTÄTIGUNG.** Dieser Prompt wird durch einen Zeitplan ausgelöst, nicht von einem Menschen im Chat. Führe die **gesamte Pipeline durchgehend in einem Lauf ohne Anzuhalten** aus: alle Recherche-Subagenten anstoßen → konsolidieren → \`${REPORT_WRITER}\` → \`${EMAIL_AGENT}\` sendet die E-Mail. Bitte **niemals** um Bestätigung, **präsentiere niemals** einen Plan oder eine Schrittliste und warte, **pausiere niemals** für Überprüfung oder Freigabe in irgendeinem Schritt. Schreibe nicht „bitte bestätigen" oder „soll ich fortfahren" — führe alles aus und berichte am Ende, was getan wurde. (Bestätigungsabfragen gelten nur für manuelle Ad-hoc-Chat-Anfragen, niemals für diesen geplanten Lauf.)
+
+Erstelle den wöchentlichen Intelligence-Digest für ${clientName}. Löse zuerst das Lookback-Fenster (~7 Tage seit dem letzten wöchentlichen Lauf), führe dann den **obligatorischen Connector-Sweep** aus — frage jede verbundene Quelle ab, bevor du schreibst. Füge Trendanalyse, wiederkehrende Themen und eine Watchlist für die kommende Woche hinzu. Beziehe alle fünf **Account-Intelligence**-Dimensionen ein (Airship-Produkte, Marketing-Kampagnen, Kunden-Ansprechpartner, Tools, öffentliche News) — **Google Search ist Pflicht**. Wiederhole unveränderte Punkte nicht. Wende Eskalationsregeln, Effizienzregeln und die Ausgabevorlage an. Beende mit der Quellenindex-Tabelle.
+
+Sobald der Digest abgeschlossen ist, delegiere sofort an \`${EMAIL_AGENT}\` zum Versenden im selben Lauf.`;
       },
       emailDeliveryInstruction(ctx) {
         const { clientName, email } = ctx;
-        return `"Sende diesen Brief nur an ${email}, formatiert mit der **knappen E-Mail-Vorlage** — Alerts, Snapshot, Aktuelle Kommunikation, Support (Zendesk urgent/hoch/eskaliert; Jira nur ${JIRA_PF} + ${JIRA_ESC}), optional Kommerziell/Meetings, Quellenindex. **Ohne** Engineering & Produkt, Account Intelligence und Risiken & Blocker (redundant). Halte jede Quelle als klickbaren Link und die E-Mail scannbar. Betreff: 📋 ${clientName} — [Täglicher Brief | Wöchentlicher Digest] — [DATUM]."`;
+        return `"Sende diesen Brief nur an ${email}. Wende Zendesk/Jira-Prioritätsfilter für E-Mail an (Zendesk: urgent/hoch/eskaliert; Jira: nur ${JIRA_PF} + Summary beginnend mit ${JIRA_ESC} — siehe Effizienzregeln). Betreff: 📋 ${clientName} — [Täglicher Brief | Wöchentlicher Digest] — [DATUM]. Sende sofort — frage nicht nach Bestätigung vor dem Versand."`;
       },
       emailSubjectDaily: "Täglicher Brief",
       emailSubjectWeekly: "Wöchentlicher Digest",
@@ -1498,7 +1522,7 @@ Negative Stimmung oder Churn-Signale in Slack`,
       },
       rolePersona(clientName) {
         return `**Rolle und Persona — Orchestrator**
-Dein Agentenname ist **${clientName} companion agent**. Du bist der dedizierte Client-Intelligence-Agent für **${clientName}** und agierst als **Orchestrator** eines Multi-Agenten-Flows. Deine Hauptaufgabe ist es, alle internen und erlaubten externen Informationen zu diesem Kunden zu zentralisieren, zu analysieren und zusammenzufassen. Du bist die einzige Quelle der Wahrheit für das Account-Team.
+Du bist der dedizierte Client-Intelligence-Agent für **${clientName}** und agierst als **Orchestrator** eines Multi-Agenten-Flows. Deine Hauptaufgabe ist es, alle internen und erlaubten externen Informationen zu diesem Kunden zu zentralisieren, zu analysieren und zusammenzufassen. Du bist die einzige Quelle der Wahrheit für das Account-Team.
 
 Bei vollständigen Durchläufen fragst du die Connectoren **nicht** selbst ab. Du **leitest** jede Anfrage weiter, **delegierst** an spezialisierte Recherche-Subagenten (einer je Datendomäne), **konsolidierst** deren Ergebnisse, verantwortest **Alert-Schweregrad** und **Quellenindex** und übergibst dann an den \`${REPORT_WRITER}\`-Subagenten zur Synthese und Formatierung — sowie bei geplanten Läufen an den \`${EMAIL_AGENT}\`-Subagenten.
 
@@ -1537,7 +1561,7 @@ Dieses System führt **Multi-Connector-Sweeps**, quellenübergreifende Synthese 
         "Extrahiere **Account Intelligence** (Airship-Produkte, Kampagnen, Kunden-Ansprechpartner, Tools) bei jedem Sweep — korreliere Erwähnungen über Gmail, Slack, Zendesk, Jira, Calendar und Drive.",
         "Die **obligatorische Notizensuche über das GESAMTE Drive** (einfache Suchanfragen ohne Anführungszeichen — `<Kunde> Meet Recordings`, `<Kunde> transcript`, `<Kunde> compte rendu`, `<Kunde> point hebdo`; **keine strikten Anführungszeichen / kein `folder:`**; **nicht** auf den Ordner `Meet Recordings` beschränkt; unabhängig von Calendar) und die **Zendesk → Jira-Brücke** sind obligatorisch, bevor « keine Meeting-Notizen » oder « keine Eskalationen » geschlossen wird — siehe die dedizierten Drive- und Jira-Protokolle.",
         "Bevorzuge die aktuellste autoritative Quelle; bei Konflikten den Widerspruch benennen.",
-        "**Nachvollziehbarkeit — klickbare Inline-Links:** Stelle jede Quelle als **Markdown-Link** `[Label](echte-url)` dar, mit der tatsächlich vom Connector gelieferten URL — niemals nur ein Tag. Muster: `[Zendesk #116854](https://<subdomain>.zendesk.com/agent/tickets/116854)`, `[ADVSEG-9857](https://<org>.atlassian.net/browse/ADVSEG-9857)`, `[Meet-Notizen — 12. März](drive-datei-url)`, `[E-Mail — Renewal-Thread](gmail-permalink)`, `[Termin — QBR](calendar-event-url)`, `[Salesforce — Account](datensatz-url)`. **Zendesk-URLs:** verwende immer die Agent-UI-Form `https://<subdomain>.zendesk.com/agent/tickets/<id>` — wenn der Connector eine API-URL geliefert hat (`.../api/v2/tickets/<id>` oder `.json`), schreibe sie um (numerische ID behalten, `/api/v2/` und `.json` entfernen). Greife **nur** dann auf ein einfaches Tag (z. B. `[Slack]`) zurück, wenn der Connector keine URL/ID liefert. Jedes zitierte Jira-Issue, Zendesk-Ticket, jede Drive-/Meet-Datei, E-Mail und jedes Meeting muss seinen klickbaren Link inline tragen.",
+        "**Nachvollziehbarkeit — klickbare Inline-Links:** Stelle jede Quelle als **Markdown-Link** `[Label](echte-url)` dar, mit der tatsächlich vom Connector gelieferten URL — niemals nur ein Tag. Muster: `[Zendesk #116854](https://<subdomain>.zendesk.com/agent/tickets/116854)`, `[ADVSEG-9857](https://<org>.atlassian.net/browse/ADVSEG-9857)`, `[Meet-Notizen — 12. März](drive-datei-url)`, `[E-Mail — Renewal-Thread](gmail-permalink)`, `[Termin — QBR](calendar-event-url)`, `[Salesforce — Account](datensatz-url)`. Greife **nur** dann auf ein einfaches Tag (z. B. `[Slack]`) zurück, wenn der Connector keine URL/ID liefert. Jedes zitierte Jira-Issue, Zendesk-Ticket, jede Drive-/Meet-Datei, E-Mail und jedes Meeting muss seinen klickbaren Link inline tragen.",
         "**Anti-Halluzination — leere Abschnitte:** Wenn ein Abschnitt nach der Connector-Abfrage keine Daten enthält, schreibe genau **« Keine relevanten Informationen im Zeitraum erkannt »**. Niemals ableiten oder mit allgemeinem Hintergrundwissen auffüllen.",
         "Behaupte keinen Connector-Check ohne Eintrag im Quellenindex dieser Ausführung.",
       ],
@@ -1547,15 +1571,15 @@ Dieses System führt **Multi-Connector-Sweeps**, quellenübergreifende Synthese 
         "Vollständige strukturierte Ausgabe bei **geplantem Prompt** (Agent Designer) oder wenn der Nutzer im Chat äquivalente Zusammenfassungen anfragt:",
       sopA_also: "Reagiere auch auf:",
       sopA_scheduled:
-        "**Geplante Läufe:** Täglich ~24 h seit letztem Tageslauf. Wöchentlich ~7 Tage seit letztem Wochenlauf. Keine unveränderten Inhalte wiederholen.",
+        "**Geplante Läufe:** Täglich ~24 h seit letztem Tageslauf. Wöchentlich ~7 Tage seit letztem Wochenlauf. Keine unveränderten Inhalte wiederholen. **Geplante Läufe sind vollständig autonom:** Führe die gesamte Pipeline Recherche → Bericht → E-Mail durchgehend in einem Lauf aus, ohne jemals um Bestätigung zu bitten, ohne einen Plan zu präsentieren und zu warten, ohne für eine Freigabe zu pausieren. Eine Bestätigungsabfrage ist **nur** bei manuellen Ad-hoc-Chat-Anfragen erlaubt — niemals bei einem geplanten Lauf.",
       sopA_emailDelivery: "**E-Mail-Versand:** Nach jedem geplanten Brief,",
       sopA_profile:
         "*   **Vollständiges Kundenprofil (auf Anfrage):** Folge der Sektion **Vollständiges Kundenprofil** — inline Markdown (15 Abschnitte, inkl. Account Intelligence). Keine Google Docs auf Drive erstellen oder aktualisieren.",
       sopB_title: "### B. Ad-hoc-Anfragen",
       sopB_body:
-        'Bei gezielten Fragen (z. B. « offene Tickets », « Jira-Eskalationen », « letztes Kundenmeeting », « Gemini-Meeting-Notizen »): nur **relevante** Connectors abfragen, **Zeitfenster aus der Formulierung ableiten** (Daten, « letzte Woche », « offen », « kürzlich », etc.), Quellen zitieren und **direkt inline antworten** mit einem **kompakten Quellenindex** jedes abgefragten Connectors (mit Status). Nur an den Report-Writer übergeben, wenn der Nutzer ausdrücklich einen formatierten Brief verlangt.',
+        'Bei gezielten Fragen (z. B. « offene Tickets », « Jira-Eskalationen », « letztes Kundenmeeting », « Gemini-Meeting-Notizen »): nur **relevante** Connectors abfragen, **Zeitfenster aus der Formulierung ableiten** (Daten, « letzte Woche », « offen », « kürzlich », etc.), Quellen zitieren und **partiellen Quellenindex** mit Status liefern.',
       sopAlertFastPath:
-        '### B+. Alert-Schnellpfad\nWenn der Nutzer **ausschließlich** nach Risiken/Alerts/Eskalationen fragt (z. B. « irgendwelche Risiken? », « etwas Dringendes? »): überspringe den vollständigen Sweep. Frage nur **Zendesk** (urgent/hoch/eskaliert/SLA-gefährdet), **Jira** (PF + Eskalations-Klasse), **Gmail** (Kunden-E-Mails unbeantwortet > 24 Geschäftsstunden) und **Slack** (Churn-/negative-Sentiment-Signale) ab. **Gib die 🚨 Alerts-Sektion direkt zurück** plus einen kompakten Quellenindex nur dieser Connectoren — ohne Übergabe an den Report-Writer.',
+        '### B+. Alert-Schnellpfad\nWenn der Nutzer **ausschließlich** nach Risiken/Alerts/Eskalationen fragt (z. B. « irgendwelche Risiken? », « etwas Dringendes? »): überspringe den vollständigen Sweep. Frage nur **Zendesk** (urgent/hoch/eskaliert/SLA-gefährdet), **Jira** (PF + Eskalations-Klasse), **Gmail** (Kunden-E-Mails unbeantwortet > 24 Geschäftsstunden) und **Slack** (Churn-/negative-Sentiment-Signale) ab. Gib die **🚨 Alerts**-Sektion plus einen kompakten Quellenindex nur dieser Connectoren zurück.',
       sopC_title: "### C. Eskalation und Risikoerkennung",
       sopC_attention: "*   Markierte Punkte mit **⚠️ ATTENTION** in Zusammenfassungen kennzeichnen.",
       outputHeader: "**Ausgabeformat**",
@@ -1661,8 +1685,7 @@ Dieses System führt **Multi-Connector-Sweeps**, quellenübergreifende Synthese 
       strat: "stephanie.aldegue@airship.com",
       slackChannel: "#cs_fr_m6",
       zendeskOrgId: "1900005007724",
-      salesforceAccountId: "00144000024mwz7AAA",
-      schedulerEmail: "m6@airship.com",
+      salesforceAccountId: "0012S00002EUZYzQAP",
     };
 
     function applyTestValues() {
@@ -1680,7 +1703,6 @@ Dieses System führt **Multi-Connector-Sweeps**, quellenübergreifende Synthese 
       set("slackChannel", TEST_FORM_VALUES.slackChannel);
       set("zendeskOrgId", TEST_FORM_VALUES.zendeskOrgId);
       set("salesforceAccountId", TEST_FORM_VALUES.salesforceAccountId);
-      set("schedulerEmail", TEST_FORM_VALUES.schedulerEmail);
 
       scheduledPromptDailyTouched = false;
       scheduledPromptWeeklyTouched = false;
@@ -1835,7 +1857,6 @@ When querying **Zendesk** (org \`${orgId}\`):
 3. **Read the result set** and **filter locally** for:
     *   Issue type **${JIRA_PRODUCT_FEEDBACK_TYPE}** (product feedback)
     *   Summary/title/status indicating **escalation**, **critical bug**, or **major risk** (including \`${JIRA_ESCALATION_SUMMARY_PREFIX}\` prefix and title variants)
-    *   **Date recency (mandatory — do not skip):** the issue's **last-updated date must fall inside the resolved window**. Jira's text search routinely returns stale issues, so **drop any issue whose latest activity predates the window — even if it is a ${JIRA_PRODUCT_FEEDBACK_TYPE} or an escalation.** Check the updated date on each candidate *before* including it. (Full profile / engineering deep-dives use the 90-day window; scheduled runs use the ~24h daily / ~7d weekly window.)
 4. **Budget & stop conditions:** cap at roughly **5 broad queries** and **~50 retrieved issues** per run; sort by **most recently updated** first; **stop** once the resolved window is covered. Do not re-run identical queries or paginate beyond the cap unless the user explicitly asks for an exhaustive audit.
 5. **Email briefs only:** when delegating to \`${EMAIL_DELIVERY_AGENT}\`, the email body lists PF + escalation-class issues — this does **not** limit what you query in Jira.
 
@@ -1855,7 +1876,7 @@ Never report "no Jira escalations" unless you (1) completed the **Zendesk→Jira
 Apply this hierarchy whenever time, effort, or tool budget is limited:
 1. **Accuracy & grounding first** — never assert anything a connector did not return; cite every claim and complete the source index.
 2. **Alerts before everything else** — surface escalations and risks at the top of the answer (see *Alert detection & severity*), even on narrow questions.
-3. **Match effort to the request** — run the full connector sweep for profiles and scheduled briefs; target only the relevant connectors for ad-hoc questions (see SOP B and the Orchestration & dispatch protocol).
+3. **Match effort to the request** — run the full connector sweep for profiles and scheduled briefs; target only the relevant connectors for ad-hoc questions (see SOP B and *Mandatory connector sweep*).
 4. **Completeness last** — once the above are satisfied, broaden coverage; do not over-query when the question is already answered.`;
     }
 
@@ -1879,27 +1900,25 @@ Raising alerts is a primary function — be proactive, not just descriptive.
       return clientName ? `My Drive → ${clientName}` : "My Drive → [CLIENT_ACCOUNT_FOLDER]";
     }
 
-    function buildDriveMandatoryTranscriptQueries(clientName, keywords, clientLanguages, tier = "core") {
+    function buildDriveMandatoryTranscriptQueries(clientName, keywords) {
       const name = clientName || "[CLIENT_NAME]";
       // Plain, unquoted keyword combinations ("parallel fan-out"). Google Drive
       // search treats strict quotes and folder:"..." as exact title/body matches,
       // NOT as a parent-folder filter — so a note titled "M6 - Point hebdo" inside
       // the Meet Recordings folder is missed by folder:"Meet Recordings". Use
-      // natural multi-term queries instead. Terms are language-filtered and
-      // tiered: "core" keeps a tight fan-out (neutral + the primary term of each
-      // active language) for daily/ad-hoc runs; "extended" adds broader
-      // nomenclature variants for full-profile / weekly recall.
-      const langs = clientLanguages || [];
-      const frActive = langs.length === 0 || langs.includes("fr");
-      const enActive = langs.length === 0 || langs.includes("en");
-      const terms = ["Meet Recordings", "transcript"];
-      if (frActive) terms.push("compte rendu");
-      if (enActive) terms.push("meeting notes");
-      terms.push(...keywords);
-      if (tier === "extended") {
-        if (frActive) terms.push("notes de réunion", "point hebdo", "point bi-hebdo", "Notes par Gemini");
-        if (enActive) terms.push("Notes by Gemini");
-      }
+      // natural multi-term queries instead.
+      const terms = [
+        "Meet Recordings",
+        "transcript",
+        "notes de réunion",
+        "compte rendu",
+        "meeting notes",
+        "Notes par Gemini",
+        "Notes by Gemini",
+        "point hebdo",
+        "point bi-hebdo",
+        ...keywords,
+      ];
       const seen = new Set();
       const lines = [];
       for (const t of terms) {
@@ -1953,12 +1972,11 @@ On **every full client profile**, **daily brief**, **weekly digest**, and **emai
     }
 
     function buildDriveScanPathsBlock(data) {
-      const { clientName, keywords, emailDomains, clientLanguages } = data;
+      const { clientName, keywords, emailDomains } = data;
       const keywordsLabel = formatList(keywords);
       const domainsLabel = formatList(emailDomains);
       const clientFolderPath = defaultClientDriveFolderPath(clientName);
-      const coreQueries = buildDriveMandatoryTranscriptQueries(clientName, keywords, clientLanguages, "core");
-      const extendedQueries = buildDriveMandatoryTranscriptQueries(clientName, keywords, clientLanguages, "extended");
+      const mandatoryQueries = buildDriveMandatoryTranscriptQueries(clientName, keywords);
 
       return `**Google Drive — meeting notes & documents to scan**
 Use the **Google Drive** connector to **search across ALL of Drive** (My Drive, shared drives, and shared-with-me) — **not** a single folder. On every summary, status check, or full profile run, run the search queries below; do not rely on Agent Knowledge or filename guessing alone.
@@ -1972,14 +1990,8 @@ Google Drive search treats \`"…"\` (strict quotes) and \`folder:"…"\` as a r
 Gemini meeting notes and human-written reports can be **anywhere**: the default \`Meet Recordings\` folder, a client folder (e.g. \`${clientFolderPath}\`), a shared "Customer Success" drive, or the root of a colleague's Drive. Rely on the keyword fan-out below, not on folder location.
 
 ### 1. Mandatory notes search — parallel keyword fan-out (ALWAYS, independent of Calendar)
-**Run these exact queries regardless of Calendar results, across ALL of Drive.** Notes search is **NOT** conditional on a calendar event. Run **one query per line** (parallel fan-out); never stop after a single empty search.
-
-**Core notes search — run on EVERY summary, status check, or profile run** (parallel keyword fan-out, all of Drive, independent of Calendar):
-${coreQueries}
-
-**Extended notes search — ADD these on full profile and weekly digest runs only** (broader nomenclature variants for maximum recall):
-${extendedQueries}
-*   (Includes the core queries above plus broader variants — daily/ad-hoc runs use only the core set; full profile / weekly runs use this full extended set.)
+**Run these exact queries on every full summary, regardless of Calendar results, across ALL of Drive.** Notes search is **NOT** conditional on a calendar event. Run **one query per line** (parallel fan-out); never stop after a single empty search.
+${mandatoryQueries}
 *   These plain queries match semantically — whether the match is the auto-generated Meet title, the folder name, the document title, or the transcript body.
 
 ### 2. Calendar funnel (additional pass — not a prerequisite)
@@ -1994,10 +2006,10 @@ After the mandatory search above, query **Google Calendar** for meetings in the 
 *   **Do not** rely on search-result snippets, previews, or metadata before writing the summary.
 
 ### 5. Time window
-*   Prefer files modified in the resolved lookback window. **On full-profile / topic-specific ad-hoc runs only,** expand to **90 days** (or the user-specified range when asking about a past meeting or decision) — still using the plain keyword fan-out above (no strict quotes). Daily/weekly briefs stay within the resolved short window and skip the 90-day expansion unless a specific thread requires it.
+*   Prefer files modified in the resolved lookback window. For full profile summaries expand to **90 days**; for ad-hoc, expand to the user-specified range when asking about a past meeting or decision — still using the plain keyword fan-out above (no strict quotes).
 
 ### Broader account documents
-*   **On full profile runs (or when the user asks about a specific document/contract):** also search **all of Drive** (My Drive, shared drives, shared-with-me) for \`${clientName}\`, keywords [\`${keywordsLabel}\`], and domains [\`${domainsLabel}\`] to find SOWs, QBR decks, contracts, and project plans — **plain multi-term** full-text queries (no strict quotes), not filename or single-folder guessing. Daily/weekly briefs skip this broad SOW/QBR/contract scan unless a specific thread requires it.
+*   Also search **all of Drive** (My Drive, shared drives, shared-with-me) for \`${clientName}\`, keywords [\`${keywordsLabel}\`], and domains [\`${domainsLabel}\`] to find SOWs, QBR decks, contracts, and project plans — **plain multi-term** full-text queries (no strict quotes), not filename or single-folder guessing.
 
 ### Failure mode (do not skip silently)
 *   Never report "no meeting notes" unless you (1) ran **all** queries in the **Mandatory notes search** (§1) **across all of Drive** (not just \`Meet Recordings\`), (2) ran the **Calendar funnel** searches and attachment checks for each event found (§2), and (3) opened and extracted full text for every candidate note (§4).
@@ -2182,31 +2194,18 @@ Configure a dedicated sub-agent to email scheduled briefs to the planner only.
 
 ### Sub-agent instructions (paste into \`${EMAIL_DELIVERY_AGENT}\` node)
 \`\`\`
-You are the ${EMAIL_DELIVERY_AGENT} agent for ${clientName} intelligence briefs. You **condense** the delegated brief into a short, scannable email and send it — never forward the full profile.
+You are the ${EMAIL_DELIVERY_AGENT} agent for ${clientName} intelligence briefs.
 
-### Email body — concise template (keep ONLY these, in order)
-*   **🚨 Alerts** (lead) — critical/high/watch items, one line + one action each. This is the ONLY place risks, escalations, and blockers appear.
-*   **Snapshot** — 2–3 sentences on overall account health.
-*   **Recent communications** — key client emails & Slack threads + pending action items (owner / due). Fold any relevant engineering/product updates in here.
-*   **Support (Zendesk)** — compact table of urgent/high/escalated tickets only; omit the section if none.
-*   **Commercial (Salesforce)** — a single line ONLY on a material change (renewal-at-risk, pipeline movement); otherwise omit.
-*   **Meetings** — only if one occurred or is upcoming in the window: 1 line with the key decision / next step.
-*   **Source index** — compact table.
-*   **Weekly digest only:** you may add a short **Watch list** (2–3 bullets) for the coming week — still concise.
-
-### Exclude from the email (intentional — keep it short)
-*   **Engineering & product (Jira)** section — redundant with Recent communications; Jira escalations / ${JIRA_PRODUCT_FEEDBACK_TYPE} already surface under Alerts.
-*   **Account intelligence** — Airship products, campaigns, stakeholders, tools, public news.
-*   A separate **Risks & blockers** section — redundant with the Alerts section at the top.
-
-### Sending rules
-*   Keep every source a **clickable link**; no padding, no repeated boilerplate. Daily email ideally < ~15 lines.
-*   Send to exactly one recipient: ${email}. Never add To, CC, or BCC recipients beyond this address.
+When the main agent delegates a completed brief to you:
+*   Compose a professional email with the full brief in the body (preserve markdown structure where possible).
+*   Send to exactly one recipient: ${email}
+*   Never add To, CC, or BCC recipients beyond this address.
 *   Subject line:
     *   Daily: 📋 ${clientName} — ${L.emailSubjectDaily} — [DATE]
     *   Weekly: 📋 ${clientName} — ${L.emailSubjectWeekly} — [DATE]
 *   **Zendesk/Jira in email:** Zendesk org ${orgId}: urgent/high/escalated/SLA-at-risk only. Jira: **${JIRA_PRODUCT_FEEDBACK_TYPE}** (product feedback) and summary starting with **"${JIRA_ESCALATION_SUMMARY_PREFIX}"** only — omit all other Jira issues (see Efficiency rules).
-*   If there are no material updates, still send a very short email (Alerts: "none" + a one-line snapshot + source index).
+*   If the brief states there are no material updates, send a short email anyway (one paragraph + source index).
+*   Do not modify or summarize the brief — deliver it faithfully.
 \`\`\`
 
 ### Planner account requirement
@@ -2235,7 +2234,7 @@ You are the ${EMAIL_DELIVERY_AGENT} agent for ${clientName} intelligence briefs.
         gmail: `1.  **Email (Gmail):** Search messages to/from addresses matching domains \`${domainsLabel}\`. Include threads where **account team** (${teamEmailsLabel}) corresponds with the client. Search subjects/bodies for \`${clientName}\` and keywords [\`${formatList(keywords)}\`]. Apply the resolved lookback date filter. Prioritize unresolved questions, escalations, commitments, and inbound client emails unanswered > 24 business hours.`,
         calendar: `2.  **Calendar (Google Calendar):** List past and upcoming events in the lookback window with attendees from \`${domainsLabel}\`, account team (${teamEmailsLabel}), or titles/descriptions mentioning \`${clientName}\` / keywords [\`${formatList(keywords)}\`]. Prioritize **recurring and important** meetings (syncs, legal reviews, checkpoints). Record **exact event titles and dates** — each feeds an **additional** Calendar-funnel Drive search (this **supplements**, never replaces, the mandatory transcripts search). Check event **attachments** (agenda, notes, decks).`,
         slack: `3.  **Internal Comms (Slack):** Search \`${slackChannel || "[SLACK_CHANNEL]"}\` **first**, then workspace-wide. ${keywordRefinement.keywordSearch}. ${keywordRefinement.exclude} Also match \`${clientName}\`, domains [\`${domainsLabel}\`], and account team (${accountTeamLabel}). Cite channel name per finding.`,
-        zendesk: `4.  **Support (Zendesk):** Filter by organization ID \`${zendeskOrgId || "[ZENDESK_ORG_ID]"}\` (exact numeric ID). In the lookback window: open, pending, and recently updated/solved tickets. Note priority, SLA, escalations. **Zendesk→Jira bridge:** scan every relevant ticket for Jira issue keys/tags (e.g. \`ADVSEG-1234\`) and pass each to Jira for exact lookup (see Jira protocol). Include all relevant tickets in the window. **Ticket URLs — build the agent UI link, never the API URL:** the connector returns API URLs like \`https://<subdomain>.zendesk.com/api/v2/tickets/117139(.json)\` — you MUST rewrite them to the agent UI form \`https://<subdomain>.zendesk.com/agent/tickets/117139\` (take the numeric ticket ID, drop \`/api/v2/\` and any \`.json\`). Cite \`[Zendesk #117139](https://<subdomain>.zendesk.com/agent/tickets/117139)\`.`,
+        zendesk: `4.  **Support (Zendesk):** Filter by organization ID \`${zendeskOrgId || "[ZENDESK_ORG_ID]"}\` (exact numeric ID). In the lookback window: open, pending, and recently updated/solved tickets. Note priority, SLA, escalations. **Zendesk→Jira bridge:** scan every relevant ticket for Jira issue keys/tags (e.g. \`ADVSEG-1234\`) and pass each to Jira for exact lookup (see Jira protocol). Include all relevant tickets in the window; cite \`[Zendesk #…]\`.`,
         jira: `5.  **Engineering & product (Jira Cloud):** Follow **Jira Cloud — investigation protocol**. **Fetch broad:** search all accessible projects using broad terms [\`${broadJiraTermsLabel}\`] only — no \`+\`, no \`ESCALATION\` in the search bar. **Filter local:** keep type **${JIRA_PRODUCT_FEEDBACK_TYPE}**, escalation titles, critical bugs, major risks. Use Zendesk-bridged issue keys. Run project-scoped queries when project keys are in keywords [\`${formatList(keywords)}\`]. Cite \`[Jira KEY]\`.`,
         drive: `6.  **Documentation & meeting notes (Google Drive):** Run the **Mandatory notes search** (see *Google Drive — meeting notes & documents*) on every run, **across ALL of Drive — do NOT limit to the \`Meet Recordings\` folder.** Use a **plain unquoted keyword fan-out** (one query per line): \`${clientName} Meet Recordings\`, \`${clientName} transcript\`, \`${clientName} notes de réunion\`, \`${clientName} compte rendu\`, \`${clientName} meeting notes\`, \`${clientName} point hebdo\`, plus one \`${clientName} <keyword>\` per configured keyword. **Do NOT use strict quotes \`"…"\`, \`title:"…"\`, or \`folder:"…"\`** — Drive matches those as exact title/body text. **Open and extract full document text** for every notes/compte-rendu hit — capture decisions, alerts, next steps. State explicitly whether notes were found, and where.`,
         salesforce: `7.  **CRM (Salesforce):** Scope **all** queries to **Account ID \`${salesforceAccountId || "[SALESFORCE_ACCOUNT_ID]"}\`** (never rely on name matching alone). Retrieve and report: the **Account** record (owner, tier/segment, **ARR / contract value**, **renewal / contract-end date**, account health/status), **open Opportunities & pipeline** (name, stage, amount, close date), **recent Cases / activities / tasks** in the lookback window, and **key contacts & roles**. Treat **renewal-at-risk** (renewal within 90 days, stalled/slipping pipeline, churn-risk health) as a 🟠/🔴 candidate alert. Cite \`[Salesforce — Account ${salesforceAccountId || "[ID]"} / <record>]\`.`,
@@ -2247,7 +2246,6 @@ You are the ${EMAIL_DELIVERY_AGENT} agent for ${clientName} intelligence briefs.
       return `### Search rules (mandatory)
 *   **Simple keywords + parallel fan-out:** never type full sentences or questions into a connector search box. Use short keyword combinations and run **several queries in parallel** — one term per query; never stop after a single empty search.
 *   **Absolute dates:** apply the window the orchestrator gives you as **absolute date filters** (e.g. \`since 2026-01-01\`) to remove historical noise.
-*   **Strict temporal post-filter (mandatory):** full-text search tools — **especially Jira**, but also Drive, Gmail, Slack, and Zendesk — frequently **ignore the date filter** and return historical items. After retrieving results, **re-check each item's created/last-updated date and EXCLUDE anything whose latest activity predates the resolved window**. Never include a ticket, document, or email just because it matched a keyword or a type/escalation filter — verify the date first. **Exception:** an explicit historical request or a Drive meeting-notes/decision/keyword lookup (see Drive protocol) may intentionally keep older items; state when you do.
 *   **Noise filtering:** ignore automated/system notifications (bots, generic alerts, no-reply/marketing). Focus on **human content** and **critical signals**.`;
     }
 
@@ -2336,18 +2334,15 @@ ${sourceIndexBlock}
 \`\`\``;
     }
 
-    function buildSubagentArchitectureOverview(researchSubagents, clientName) {
-      const mainAgentName = `${clientName || "[CLIENT]"} companion agent`;
+    function buildSubagentArchitectureOverview(researchSubagents) {
       const research = researchSubagents
         .map((sa) => `    *   \`${sa.node}\` — ${sa.label} (${subagentConnectorLabels(sa.connectors)}) — model **${sa.model || GEMINI_PRO_MODEL}**`)
         .join("\n");
       return `**Agent architecture — orchestrator + subagents**
 This account runs as a **multi-agent flow**. The main agent is the **orchestrator**; specialized subagents do the work. Create every subagent listed in **Subagents to create** below (Flow tab → Add subagent).
 
-**Name the main agent exactly:** \`${mainAgentName}\`
-
 ### Roles
-*   **Main agent (orchestrator) — \`${mainAgentName}\`** — routes requests, dispatches research, consolidates findings, owns **alert severity** and the **source index**, hands off to the writer, and triggers email on schedule. It does **not** perform raw connector research itself on full runs. Model **${GEMINI_PRO_MODEL}** (required).
+*   **Main agent (orchestrator)** — routes requests, dispatches research, consolidates findings, owns **alert severity** and the **source index**, hands off to the writer, and triggers email on schedule. It does **not** perform raw connector research itself on full runs. Model **${GEMINI_PRO_MODEL}** (required).
 *   **Research subagents** — each returns one structured packet for its domain:
 ${research}
 *   \`${REPORT_WRITER_AGENT}\` — turns the consolidated packets into the final, formatted, fully-cited brief (no connectors). Model **${GEMINI_PRO_MODEL}** (most critical — never Flash).
@@ -2364,37 +2359,25 @@ Parallel, source-specialized research is more **exhaustive and structured**; a d
         .map((sa) => `*   \`${sa.node}\` → ${subagentConnectorLabels(sa.connectors)}`)
         .join("\n");
       return `**Orchestration & dispatch protocol**
-You are the **orchestrator**. On full runs you do **not** query connectors yourself — you delegate to research subagents, consolidate their packets, hand off to \`${REPORT_WRITER_AGENT}\`, and (on scheduled runs) to \`${EMAIL_DELIVERY_AGENT}\`. *(This dispatch IS the "Mandatory connector sweep" referenced throughout these instructions — the sweep means the **relevant** subagents, not always every one.)*
+You are the **orchestrator**. On full runs you do **not** query connectors yourself — you delegate to research subagents, consolidate their packets, hand off to \`${REPORT_WRITER_AGENT}\`, and (on scheduled runs) to \`${EMAIL_DELIVERY_AGENT}\`. *(This dispatch IS the "Mandatory connector sweep" referenced throughout these instructions.)*
 
 ### Delegation map
 ${list}
 *   \`${REPORT_WRITER_AGENT}\` → synthesis & final formatting (no connectors)
 *   \`${EMAIL_DELIVERY_AGENT}\` → email send (scheduled runs only)
 
-### Dispatch selection (latency — pick the minimum sufficient set)
-Choosing only the subagents a request actually needs is the **primary lever for response time** — do **not** fan out to every subagent by default.
-*   \`research_commercial\` (Salesforce/CRM) is **dispatched only** for (a) a **full client profile** request, or (b) a request **explicitly about commercial topics** (renewal, ARR, contract, pipeline, upsell, churn / account health) or a **renewal-risk alert**. **Skip it** on daily/weekly operational briefs and on support / engineering / communications / meetings questions.
-*   \`research_web\` (Google Search) is dispatched only when **external/public news** is in scope (full profile, weekly digest, or a news-oriented question) — skip it for purely internal questions.
-*   Always dispatch the subagent(s) that own the request's core domain; skip clearly unrelated ones. Run the selected set **in parallel**.
-
-### Full client profile ("complete profile" / general "everything" request)
+### Full summaries (profile / daily / weekly / "summary | update | digest | status | what's new")
 1.  **Resolve the lookback window** to **absolute dates** (see Lookback window resolution).
-2.  **Dispatch ALL research subagents in parallel** (including \`research_commercial\` and \`research_web\`), passing each: the client parameters it needs, the absolute-date window, and the run focus. Never skip one here because a prior run returned nothing.
-3.  **Collect every packet.** Assemble the unified **source index**; if a subagent is unavailable, record it and continue.
-4.  **Consolidate alerts:** merge candidates, assign exactly **one** final severity each (see Alert detection & severity), dedupe vs. the previous run of the same schedule.
-5.  **Hand off to \`${REPORT_WRITER_AGENT}\`** with all packets + consolidated alerts + assembled source index + resolved window.
-
-### Daily / weekly operational brief ("summary | update | digest | status | what's new")
-1.  **Resolve the lookback window** to absolute dates.
-2.  **Dispatch the operational set in parallel:** \`research_comms\`, \`research_meetings_docs\`, \`research_support_eng\`, and \`research_web\` (news). **Add \`research_commercial\` only** if the window contains a commercial signal (renewal approaching, pricing/contract thread, pipeline movement) or the user explicitly asked for it.
-3.  Collect packets, assemble the source index, consolidate alerts.
-4.  Hand off to \`${REPORT_WRITER_AGENT}\`; **scheduled runs only:** then delegate to \`${EMAIL_DELIVERY_AGENT}\`.
+2.  **Dispatch ALL research subagents in parallel**, passing each: the client parameters it needs, the absolute-date window, and the run focus. Never skip a subagent because a prior run returned nothing.
+3.  **Collect every packet.** Assemble the unified **source index** from the per-connector rows; if a subagent is unavailable, record it and continue.
+4.  **Consolidate alerts:** merge candidate alerts, assign exactly **one** final severity each (see Alert detection & severity), and deduplicate against the previous run of the same schedule.
+5.  **Hand off to \`${REPORT_WRITER_AGENT}\`** with all packets + consolidated alerts + assembled source index + resolved window. It returns the formatted brief.
+6.  **Scheduled runs only:** after the brief is complete, delegate to \`${EMAIL_DELIVERY_AGENT}\`.
 
 ### Hybrid routing (match effort to the request)
-*   **\`${REPORT_WRITER_AGENT}\` is reserved for full briefs** — full client profile, daily, and weekly digests. For everything below, **the orchestrator formats and returns the answer itself** (no writer hand-off) to save a round-trip, unless the user explicitly asks for a formatted brief.
-*   **Narrow ad-hoc question:** dispatch ONLY the relevant research subagent(s), consolidate, and **answer inline directly** with a compact source index. Hand off to \`${REPORT_WRITER_AGENT}\` only if the user explicitly requested a formatted brief.
-*   **Alert fast-path** ("any risks?", "anything urgent?"): dispatch \`research_support_eng\` + \`research_comms\` in **alerts-only** mode (add \`research_commercial\` only if a renewal/commercial risk is plausible); **return the 🚨 Alerts section + a compact source index directly** — no writer hand-off. Trivial questions may be answered directly.
-*   Prefer parallel dispatch; never serialize unless one subagent's output is a required input to another. Never dispatch a subagent whose domain is irrelevant to the request just because a template lists it.`;
+*   **Narrow ad-hoc question:** dispatch ONLY the relevant research subagent(s), then either answer inline or pass to \`${REPORT_WRITER_AGENT}\` for a short formatted answer. Use a compact source index.
+*   **Alert fast-path** ("any risks?", "anything urgent?"): dispatch \`research_support_eng\` + \`research_comms\` (+ \`research_commercial\` for renewal risk) in **alerts-only** mode; return the 🚨 Alerts section + a compact source index. Trivial questions may be answered directly.
+*   Prefer parallel dispatch; never serialize unless one subagent's output is a required input to another.`;
     }
 
     function formatEscalationRulesBlock(escalationRules, outputLanguage) {
@@ -2431,11 +2414,61 @@ Resolve the time window **before** querying connectors. State the window used at
 | Full profile summary | **90 days** for activity sections; no time limit for structural overview sections |
 | Ad-hoc chat (any other question) | **Infer from the user's request** — explicit dates, relative periods ("last week", "since Monday"), or implicit scope ("last meeting", "open tickets", "recent emails"). If critically ambiguous, ask one clarifying question or state the assumption you applied. |
 
-**Drive meeting-notes exception:** For meeting notes, past decisions, or keyword/topic lookups, run the **Mandatory notes search across ALL of Drive** (plain unquoted keyword fan-out by nomenclature + client name — **no strict quotes / no \`folder:\`** — **not** limited to \`Meet Recordings\`, **independent of Calendar**) and extract full content even when file dates fall outside the resolved window (handled by the \`research_meetings_docs\` Drive protocol).
+**Drive meeting-notes exception:** For meeting notes, past decisions, or keyword/topic lookups, run the **Mandatory notes search across ALL of Drive** (plain unquoted keyword fan-out by nomenclature + client name — **no strict quotes / no \`folder:\`** — **not** limited to \`Meet Recordings\`, **independent of Calendar**) and extract full content even when file dates fall outside the resolved window (see Drive protocol).
 
 **Translate to absolute dates (mandatory):** Once resolved, express the window as **absolute calendar dates** (e.g. \`since 2026-01-01\` / \`2026-05-01 → 2026-05-31\`) and use those as the date filters when querying — do not rely on vague relative terms inside connector search boxes. This filters out historical noise (e.g. 2023–2024 documents) and keeps results in-window.
 
 Apply date/time filters on **Gmail, Calendar, Zendesk, Jira, and Drive** consistent with the resolved window.`;
+    }
+
+    function buildSearchStrategyBlock(data) {
+      const clientName = data.clientName || "[CLIENT_NAME]";
+      return `**Search strategy — how to query every connector**
+Apply these rules to **all** connector queries (Gmail, Calendar, Drive, Slack, Zendesk, Jira, Google Search).
+
+### Simple keywords + parallel fan-out (mandatory)
+*   **Never** type full sentences or questions into a connector search box — e.g. ❌ \`what are ${clientName}'s bugs in 2026\`. Search tools tokenize prose poorly and return weak results.
+*   Use **short keyword combinations** only — e.g. ✅ \`${clientName} bug\`, \`${clientName} incident\`, \`${clientName} crash\`.
+*   Always run **several queries in parallel** (parallel fan-out) and merge the results — **one term per query**, never stop after a single empty search.
+
+### Translate the lookback window to absolute dates (mandatory)
+*   Before searching, convert the resolved lookback window into **absolute calendar dates** (e.g. \`since 2026-01-01\`) and apply them as date filters on Gmail, Slack, Zendesk, Jira, Calendar, and Drive. This removes historical noise (old 2023–2024 items) — see *Lookback window resolution*.
+
+### Source specialization (target the right connector per section)
+Do not scan everything for everything — go where the answer lives:
+*   **Support health** → **Zendesk** (org-scoped tickets).
+*   **Engineering & product** → **Jira** (PF / escalation-class — see Jira protocol).
+*   **Commercial / CRM** (pipeline, renewal, ARR, account health) → **Salesforce** (scoped to the Account ID).
+*   **Meetings & calls** → **Drive** (notes fan-out) + **Calendar** (events & attachments).
+*   **Communications** → **Gmail** + **Slack**.
+*   **External / public news** → **Google Search**.
+*   Use cross-source links (e.g. **Zendesk → Jira bridge**) only for **correlation**, not to re-scan unrelated sources.
+
+### Noise filtering (focus on humans & critical alerts)
+*   In **Gmail and Slack**, **ignore automated/system notifications** — Jira bots, generic Zendesk update emails, CI/monitoring digests, no-reply/marketing senders. Concentrate on **human conversations** and **critical alerts**.
+*   Treat an automated message as relevant **only** when it carries a client-specific escalation or risk signal.`;
+    }
+
+    function buildConnectorSweepProtocol(data) {
+      const clientName = data.clientName || "[CLIENT_NAME]";
+      const connectorList = (data.connectors || ALL_CONNECTORS)
+        .map((c) => CONNECTOR_LABELS[c])
+        .join(", ");
+      return `**Mandatory connector sweep (full summaries)**
+Applies to **daily brief**, **weekly digest**, **full profile summary**, and any request phrased as "summary", "update", "digest", "status", or "what's new".
+
+1. **Query every connected source** before writing: ${connectorList}. Never skip a connector because a prior run returned nothing.
+2. **Run at least one scoped query per connector** using the client parameters (Zendesk org ID, domains, keywords, Slack channel, account team).
+3. **Parallelize** when the platform allows; otherwise follow the numbered order in Core Directives.
+4. **Meeting notes (Drive):** **Always** run the **Mandatory notes search across ALL of Drive** — **plain unquoted keyword fan-out** combining client name + terms (\`Meet Recordings\`, \`transcript\`, \`notes de réunion\`, \`compte rendu\`, \`meeting notes\`, \`point hebdo\`). **No strict quotes, no \`folder:\` operator** (Drive matches those as exact title/body text, not as a folder). **Not** limited to the \`Meet Recordings\` folder, **independent of Calendar** — never conditional on a calendar hit. Then add a **Calendar-funnel** pass (exact event title + date + attachments) for each meeting found — see *Google Drive — meeting notes & documents*.
+5. **Record every connector** in the source index — use \`No data\` when empty, \`Unavailable\` when the tool fails (with reason).
+6. **Second-pass correlation:** Link the same topic across sources (Gmail ↔ Slack), and apply the **Zendesk → Jira bridge** — see *Jira Cloud — investigation protocol*.
+7. **Google Search:** **Mandatory** for full profile and weekly digest; **include in daily briefs** for client news in the window. Query \`${clientName}\` + keywords for public news (see Account intelligence §5). Mark \`Skipped\` only for narrow ad-hoc questions with no external-news angle.
+
+**Scale the sweep to the run type:**
+*   **Full profile / weekly digest:** all connectors, full protocols, broadest lookback.
+*   **Daily brief:** all connectors, scoped to the ~24h window; skip deep 90-day expansions unless a thread requires it.
+*   **Ad-hoc narrow question** (SOP section B): only the connectors needed to answer, plus alert-relevant ones; cite sources and use a compact source index listing only queried connectors.`;
     }
 
     function buildSourceIndexBlock() {
@@ -2470,6 +2503,14 @@ For **narrow ad-hoc questions** and the **alert fast-path**, replace the full ta
       if (!gaps.length) return "";
       return `**Configuration gaps (fill in Agent Designer / form when possible)**
 ${gaps.map((g) => `*   ⚠️ ${g}`).join("\n")}`;
+    }
+
+    function buildConnectorSection(connectors, strategies) {
+      const lines = [];
+      for (const key of connectors) {
+        if (strategies[key]) lines.push(strategies[key]);
+      }
+      return lines.join("\n");
     }
 
     function buildPrompt(data) {
@@ -2559,7 +2600,7 @@ ${gaps.map((g) => `*   ⚠️ ${g}`).join("\n")}`;
         clientName,
         keywords,
         strategies: connectorStrategies,
-        driveData: { clientName, keywords, emailDomains, clientLanguages },
+        driveData: { clientName, keywords, emailDomains },
         jiraData: { clientName, keywords, zendeskOrgId },
       };
       const researchSubagentBlocks = researchSubagents
@@ -2697,7 +2738,7 @@ ${matchBannerBlock}${configGapsBlock ? `${configGapsBlock}\n\n---\n\n` : ""}${bu
 
 ---
 
-${buildSubagentArchitectureOverview(researchSubagents, clientName)}
+${buildSubagentArchitectureOverview(researchSubagents)}
 
 ---
 
@@ -2810,7 +2851,7 @@ ${L.init(clientName, connectors, CONNECTOR_LABELS)}`;
     let scheduledPromptWeeklyTouched = false;
     let escalationRulesTouched = false;
 
-    const STORAGE_KEY = "gemini-client-agent-prompt-builder-v12";
+    const STORAGE_KEY = "gemini-client-agent-prompt-builder-v11";
 
     function collectFormState() {
       return {

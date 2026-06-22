@@ -1026,6 +1026,8 @@ Negative sentiment or churn signals in Slack</textarea>
     const EMAIL_DELIVERY_AGENT = "email_delivery";
     const REPORT_WRITER_AGENT = "report_writer";
     const GEMINI_PRO_MODEL = "Gemini Pro";
+    const GEMINI_FLASH_MODEL = "Gemini Flash";
+    const FLASH_ACCEPTABLE_NOTE = "Flash acceptable to optimize cost/latency";
     const JIRA_PRODUCT_FEEDBACK_TYPE = "PF";
     const JIRA_ESCALATION_SUMMARY_PREFIX = "ESCALATION";
 
@@ -1033,11 +1035,11 @@ Negative sentiment or churn signals in Slack</textarea>
     // Designer with only its connectors enabled, and returns a structured
     // research packet to the orchestrator (main agent).
     const RESEARCH_SUBAGENTS = [
-      { id: "comms", node: "research_comms", label: "Communications", connectors: ["gmail", "slack"] },
-      { id: "meetings", node: "research_meetings_docs", label: "Meetings & Documents", connectors: ["calendar", "drive"] },
-      { id: "support", node: "research_support_eng", label: "Support & Engineering", connectors: ["zendesk", "jira"] },
-      { id: "commercial", node: "research_commercial", label: "Commercial / CRM", connectors: ["salesforce"] },
-      { id: "web", node: "research_web", label: "External / Web", connectors: ["search"] },
+      { id: "comms", node: "research_comms", label: "Communications", connectors: ["gmail", "slack"], model: GEMINI_PRO_MODEL, modelNote: `${FLASH_ACCEPTABLE_NOTE} (extractive task; Pro still helps with bot/noise filtering)` },
+      { id: "meetings", node: "research_meetings_docs", label: "Meetings & Documents", connectors: ["calendar", "drive"], model: GEMINI_PRO_MODEL, modelNote: "required — long-context full-document extraction + synthesis" },
+      { id: "support", node: "research_support_eng", label: "Support & Engineering", connectors: ["zendesk", "jira"], model: GEMINI_PRO_MODEL, modelNote: "required — Zendesk→Jira bridge, criticality judgment, alert-sensitive" },
+      { id: "commercial", node: "research_commercial", label: "Commercial / CRM", connectors: ["salesforce"], model: GEMINI_PRO_MODEL, modelNote: "required — renewal-at-risk judgment" },
+      { id: "web", node: "research_web", label: "External / Web", connectors: ["search"], model: GEMINI_FLASH_MODEL, modelNote: "the safe place to economize — lightest, error-tolerant, public cited sources" },
     ];
 
     function activeResearchSubagents(connectors) {
@@ -1463,7 +1465,7 @@ Configure a dedicated sub-agent to email scheduled briefs to the planner only.
 1. In the **Flow** tab, hover the main agent node and click **Add subagent**.
 2. Set the sub-agent name to exactly: \`${EMAIL_DELIVERY_AGENT}\`
 3. Enable **Gmail** on \`${EMAIL_DELIVERY_AGENT}\` only (not required on the main agent for sending).
-4. Set model to **${GEMINI_PRO_MODEL}** (or Flash if Pro is unavailable for sub-agents).
+4. Set model to **${GEMINI_FLASH_MODEL}** (recommended — this sub-agent only formats and sends, no research; ${GEMINI_PRO_MODEL} is an acceptable fallback).
 5. Paste the instructions below into the \`${EMAIL_DELIVERY_AGENT}\` agent **Instructions** field.
 
 ### Sub-agent instructions (paste into \`${EMAIL_DELIVERY_AGENT}\` node)
@@ -1527,7 +1529,7 @@ When the main agent delegates a completed brief to you:
       return `### Output contract — return this packet to the orchestrator
 Do **not** write the client-facing brief. Return a structured **research packet**:
 *   **Sources covered** and the **window** in absolute dates.
-*   **Findings** — concise bullets, each with a **clickable citation / deep link** (exact ID or URL: \`[Zendesk #…]\`, \`[Jira KEY]\`, \`[Drive — file/link]\`, \`[Gmail]\`, \`[Slack]\`, \`[Salesforce — record]\`, \`[Google Search — url]\`).
+*   **Findings** — concise bullets, each with an **inline clickable markdown link** \`[label](real-url)\` built from the URL the connector returned: \`[#…](zendesk-ticket-url)\`, \`[KEY](jira-issue-url)\`, \`[file title](drive-url)\`, \`[email — subject](gmail-permalink)\`, \`[event](calendar-url)\`, \`[Salesforce — record](record-url)\`, \`[headline](search-url)\`. Always pass the raw URL through so the report_writer can keep it clickable; use a bare tag only when no URL/ID exists.
 *   **Account-intelligence signals** found in your sources — tag any Airship products in use, marketing campaigns, external client stakeholders (name/role/org), and non-Airship tools — so the writer can assemble them.
 *   **Candidate alerts** — evidence + suggested severity (🔴 Critical / 🟠 High / 🟡 Watch).
 *   **Source-index rows** for your connector(s): \`Connector | Status (Queried / No data / Unavailable) | Notes\`.
@@ -1553,8 +1555,11 @@ Do **not** write the client-facing brief. Return a structured **research packet*
       if (sa.id === "support") extra = `\n\n${buildJiraInvestigationBlock(ctx.jiraData)}`;
       if (sa.id === "web") extra = `\n\n${buildWebNewsProtocol(clientName, ctx.keywords)}`;
 
+      const model = sa.model || GEMINI_PRO_MODEL;
+      const modelNote = sa.modelNote ? ` *(${sa.modelNote})*` : "";
+
       return `#### Subagent: \`${sa.node}\` — ${sa.label}
-**Flow setup:** hover the main agent node → **Add subagent** → name it exactly \`${sa.node}\` → enable connector(s): **${connLabels}** → set model **${GEMINI_PRO_MODEL}** → paste the instructions below into its **Instructions** field.
+**Flow setup:** hover the main agent node → **Add subagent** → name it exactly \`${sa.node}\` → enable connector(s): **${connLabels}** → set model **${model}**${modelNote} → paste the instructions below into its **Instructions** field.
 
 \`\`\`
 You are the \`${sa.node}\` research subagent for ${clientName}. You research ONLY your assigned source(s) — ${connLabels} — and return a structured research packet to the orchestrator. You do NOT write the final client-facing brief and you do NOT send email.
@@ -1580,7 +1585,7 @@ ${buildResearchOutputContract()}
         sourceIndexBlock,
       } = ctx;
       return `#### Subagent: \`${REPORT_WRITER_AGENT}\` — Synthesis & formatting
-**Flow setup:** hover the main agent node → **Add subagent** → name it exactly \`${REPORT_WRITER_AGENT}\` → **do not enable any connector** → set model **${GEMINI_PRO_MODEL}** → paste the instructions below into its **Instructions** field.
+**Flow setup:** hover the main agent node → **Add subagent** → name it exactly \`${REPORT_WRITER_AGENT}\` → **do not enable any connector** → set model **${GEMINI_PRO_MODEL}** *(most critical node — largest context consumer + long generation; never Flash)* → paste the instructions below into its **Instructions** field.
 
 \`\`\`
 You are the \`${REPORT_WRITER_AGENT}\` subagent for ${clientName}. The orchestrator passes you the **consolidated research packets** (already gathered from every source), the **resolved window**, the **run type**, the **consolidated alerts** (with final severity), and the **assembled source index**. You do NOT query connectors. Your job: synthesize the packets into a single, accurate, well-structured, fully-cited brief.
@@ -1597,7 +1602,8 @@ ${sourceIndexBlock}
 
 ### Quality bar
 *   **Synthesize across sources** — group the same topic from different packets; resolve conflicts and state discrepancies explicitly.
-*   **Traceability:** every claim keeps its **clickable citation / deep link** from the packet (exact ID or URL).
+*   **Readability first:** apply the **Layout & readability** rules — lead with alerts, one idea per line with a bold inline label, compact tables for lists, collapse empty sections to a single line, never pad or repeat. Favor scannability over completeness of prose.
+*   **Traceability — clickable links:** render every citation as an **inline markdown hyperlink** \`[label](url)\` using the URL carried in the packet (Zendesk ticket, Jira issue, Drive/Meet file, email, calendar event, Salesforce record, news article). Use a bare tag only when the packet carries no URL.
 *   **Anti-hallucination:** if a section has no data in the packets, write exactly "No relevant information detected in [window]" (localized to the output language). Never infer or add general knowledge.
 *   Present the **🚨 Alerts** section exactly as consolidated by the orchestrator, most severe first.
 *   Reproduce the **source index** table from the orchestrator-assembled rows — one row per connector.
@@ -1606,17 +1612,19 @@ ${sourceIndexBlock}
 
     function buildSubagentArchitectureOverview(researchSubagents) {
       const research = researchSubagents
-        .map((sa) => `    *   \`${sa.node}\` — ${sa.label} (${subagentConnectorLabels(sa.connectors)})`)
+        .map((sa) => `    *   \`${sa.node}\` — ${sa.label} (${subagentConnectorLabels(sa.connectors)}) — model **${sa.model || GEMINI_PRO_MODEL}**`)
         .join("\n");
       return `**Agent architecture — orchestrator + subagents**
 This account runs as a **multi-agent flow**. The main agent is the **orchestrator**; specialized subagents do the work. Create every subagent listed in **Subagents to create** below (Flow tab → Add subagent).
 
 ### Roles
-*   **Main agent (orchestrator)** — routes requests, dispatches research, consolidates findings, owns **alert severity** and the **source index**, hands off to the writer, and triggers email on schedule. It does **not** perform raw connector research itself on full runs.
+*   **Main agent (orchestrator)** — routes requests, dispatches research, consolidates findings, owns **alert severity** and the **source index**, hands off to the writer, and triggers email on schedule. It does **not** perform raw connector research itself on full runs. Model **${GEMINI_PRO_MODEL}** (required).
 *   **Research subagents** — each returns one structured packet for its domain:
 ${research}
-*   \`${REPORT_WRITER_AGENT}\` — turns the consolidated packets into the final, formatted, fully-cited brief (no connectors).
-*   \`${EMAIL_DELIVERY_AGENT}\` — emails the scheduled brief to the planner.
+*   \`${REPORT_WRITER_AGENT}\` — turns the consolidated packets into the final, formatted, fully-cited brief (no connectors). Model **${GEMINI_PRO_MODEL}** (most critical — never Flash).
+*   \`${EMAIL_DELIVERY_AGENT}\` — emails the scheduled brief to the planner. Model **${GEMINI_FLASH_MODEL}** (formatting + send only).
+
+**Model tiers (per node):** nodes doing reasoning, judgment, or synthesis run **${GEMINI_PRO_MODEL}** (non-negotiable); purely extractive, error-tolerant nodes (\`research_comms\`, \`research_web\`) can run **${GEMINI_FLASH_MODEL}** to optimize cost/latency; pure formatting (\`${EMAIL_DELIVERY_AGENT}\`) runs **${GEMINI_FLASH_MODEL}**. Avoid Flash-Lite everywhere. Map Pro/Flash to whatever Pro-tier / Flash-tier the Agent Designer console exposes (e.g. the Gemini 2.5 family). The detailed recommendation lives in each subagent's **Flow setup** line.
 
 ### Why this structure
 Parallel, source-specialized research is more **exhaustive and structured**; a dedicated writer produces a **synthetic, well-formatted, well-documented** output; the orchestrator guarantees grounding, alerting, and accountability.`;
@@ -1976,7 +1984,7 @@ ${L.clientConfigHeader}
 | Parameter | Value |
 |-----------|-------|
 | **Client Name** | ${clientName} |
-| **Required LLM model** | **${GEMINI_PRO_MODEL}** (main agent — not Flash) |
+| **Required LLM model** | **${GEMINI_PRO_MODEL}** for the main agent (not Flash); models are **tiered per node** — see each subagent's Flow setup (\`research_web\` & \`${EMAIL_DELIVERY_AGENT}\` use **${GEMINI_FLASH_MODEL}**) |
 | **Keywords / Project Names** | ${formatList(keywords)} |
 | **Exclusion / noise terms** | ${excludeKeywords.length ? formatList(excludeKeywords) : "—"} |
 | **Client Email Domains** | ${domainsLabel} |
